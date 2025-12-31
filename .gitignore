@@ -1,0 +1,46 @@
+# --- Dependencies ---
+node_modules/
+backend/node_modules/
+frontend/node_modules/
+.pnp
+.pnp.*
+yarn-error.log*
+npm-debug.log*
+pnpm-debug.log*
+
+# --- Environment Variables (Security) ---
+# Ignore the actual secrets
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+# DO NOT ignore .env.example (It is your template)
+
+# --- Next.js Build Output ---
+.next/
+out/
+build/
+dist/
+
+# --- Database ---
+# Ignore local SQLite files if used, but keep your schema.sql
+*.db
+*.sqlite
+
+# --- Operating System Files ---
+.DS_Store
+Thumbs.db
+*.pem
+
+# --- Testing ---
+coverage/
+
+# --- IDEs ---
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# --- Vercel ---
+.vercel
