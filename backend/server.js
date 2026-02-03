@@ -513,6 +513,15 @@ app.get('/api/history/:userId', (req, res) => {
   });
 });
 
+app.get("/test-db", async (req, res) => {
+  try {
+    const [rows] = await pool.query("SELECT 1");
+    res.send("Database working ✅");
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Database failed ❌");
+  }
+});
 // backend/server.js
 
 app.get('/api/connections/:userId', (req, res) => {
