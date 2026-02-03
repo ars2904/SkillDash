@@ -287,40 +287,124 @@ app.put('/api/jobs/:jobId/hire', async (req, res) => {
 app.put('/api/jobs/:jobId/complete', async (req, res) => {
     const { jobId } = req.params;
     const { review, rating } = req.body;
+
     try {
-        const [jobRows] = await db.query('SELECT client_id, expert_id, exp_reward FROM jobs WHERE id = ?', [jobId]);
+        // Fetch job
+        const [jobRows] = await db.query(
+            'SELECT client_id, expert_id, exp_reward FROM jobs WHERE id = ?',
+            [jobId]
+        );
+
         const job = jobRows[0];
-        if (!job) return res.status(404).json({ error: "Job not found" });
-
-        await db.query('UPDATE jobs SET status = "completed" WHERE id = ?', [jobId]);
-
-        // Expert EXP Logic
-        const [expertRows] = await db.query('SELECT exp, current_level FROM users WHERE id = ?', [job.expert_id]);
-        let eExp = expertRows[0].exp + (job.exp_reward || 0);
-        let eLevel = expertRows[0].current_level;
-        while (eLevel < 10 && eExp >= (eLevel * 100)) { eExp -= (eLevel * 100); eLevel += 1; }
-        const expertRanks = ["Novice", "Initiate", "Associate", "Veteran", "Elite", "Master", "Grandmaster", "Legend", "Mythic", "Ancient"];
-        
-        await db.query('UPDATE users SET exp = ?, current_level = ?, user_rank = ? WHERE id = ?', 
-            [eExp, eLevel, expertRanks[eLevel-1], job.expert_id]);
-
-        // Client EXP Logic
-        const [clientRows] = await db.query('SELECT exp, current_level FROM users WHERE id = ?', [job.client_id]);
-        let cExp = clientRows[0].exp + 10;
-        let cLevel = clientRows[0].current_level;
-        while (cLevel < 10 && cExp >= (cLevel * 100)) { cExp -= (cLevel * 100); cLevel += 1; }
-        const clientRanks = ["Bronze Patron", "Silver Patron", "Gold Patron", "Platinum", "Diamond", "Vanguard", "Architect", "Governor", "Tycoon", "Overlord"];
-
-        await db.query('UPDATE users SET exp = ?, current_level = ?, user_rank = ? WHERE id = ?', 
-            [cExp, cLevel, clientRanks[cLevel-1], job.client_id]);
-
-        if (review && rating) {
-            await db.query('INSERT INTO reviews (job_id, reviewer_id, reviewee_id, rating, comment) VALUES (?, ?, ?, ?, ?)',
-                [jobId, job.client_id, job.expert_id, rating, review]);
+        if (!job) {
+            return res.status(404).json({ error: "Job not found" });
         }
 
-        res.json({ success: true });
-    } catch (err) { res.status(500).json({ error: err.message }); }
+        // Mark job as completed
+        await db.query(
+            'UPDATE jobs SET status = "completed" WHERE id = ?',
+            [jobId]
+        );
+
+        // ================= EXPERT EXP LOGIC =================
+        const [expertRows] = await db.query(
+            'SELECT exp, current_level FROM users WHERE id = ?',
+            [job.expert_id]
+        );
+
+        let eExp = expertRows[0].exp + (job.exp_reward || 0);
+        let eLevel = expertRows[0].current_level;
+
+        while (eLevel < 5 && eExp >= (eLevel * 100)) {
+            eExp -= (eLevel * 100);
+            eLevel++;
+        }
+
+        const expertRanks = [
+            "Novice",
+            "Initiate",
+            "Associate",
+            "Veteran",
+            "Elite"
+        ];
+
+        await db.query(
+            'UPDATE users SET exp = ?, current_level = ?, user_rank = ? WHERE id = ?',
+            [eExp, eLevel, expertRanks[eLevel - 1], job.expert_id]
+        );
+
+        // ================= CLIENT EXP LOGIC =================
+        const [clientRows] = await db.query(
+            'SELECT exp, current_level FROM users WHERE id = ?',
+            [job.client_id]
+        );
+
+        let cExp = clientRows[0].exp + 10;
+        let cLevel = clientRows[0].current_level;
+
+        while (cLevel < 10 && cExp >= (cLevel * 100)) {
+            cExp -= (cLevel * 100);
+            cLevel++;
+        }
+
+        const clientRanks = [
+            "Novice",
+            "Initiate",
+            "Veteran",
+            "Elite",
+            "Legend",
+        ];
+
+        await db.query(
+            'UPDATE users SET exp = ?, current_level = ?, user_rank = ? WHERE id = ?',
+            [cExp, cLevel, clientRanks[cLevel - 1], job.client_id]
+        );
+
+        // ================= REVIEW =================
+        if (review && rating) {
+            await db.query(
+                'INSERT INTO reviews (job_id, reviewer_id, expert_id, rating, comment) VALUES (?, ?, ?, ?, ?)',
+                [jobId, job.client_id, job.expert_id, rating, review]
+            );
+        }
+
+        // ================= RESPONSE =================
+        res.json({
+            success: true,
+            newLevel: eLevel,
+            newRank: expertRanks[eLevel - 1],
+            newExp: eExp,
+            nextMilestone: eLevel < 5 ? eLevel * 100 : null
+        });
+
+    } catch (err) {
+        console.error("Job Completion Error:", err);
+        res.status(500).json({ error: "Job completion failed" });
+    }
+});
+
+// Get unread notifications for a specific user
+app.get('/api/notifications/:userId', async (req, res) => {
+    const { userId } = req.params;
+
+    try {
+        // 1. Get all unread notifications
+        const [rows] = await db.query(
+            'SELECT * FROM notifications WHERE user_id = ? AND is_read = FALSE ORDER BY created_at ASC',
+            [userId]
+        );
+
+        // 2. Mark them as read immediately so they don't pop up again on the next poll
+        if (rows.length > 0) {
+            const ids = rows.map(n => n.id);
+            await db.query('UPDATE notifications SET is_read = TRUE WHERE id IN (?)', [ids]);
+        }
+
+        res.json(rows);
+    } catch (err) {
+        console.error("Notification Error:", err);
+        res.status(500).json({ error: "Could not fetch notifications" });
+    }
 });
 
 // --- MESSAGING ---
@@ -328,9 +412,29 @@ app.put('/api/jobs/:jobId/complete', async (req, res) => {
 app.post('/api/messages', async (req, res) => {
     const { job_id, sender_id, content } = req.body;
     try {
+        // 1. Save the actual message
         await db.query('INSERT INTO messages (job_id, sender_id, content) VALUES (?, ?, ?)', [job_id, sender_id, content]);
+
+        // 2. Find out who the receiver is
+        const [jobRows] = await db.query('SELECT client_id, expert_id FROM jobs WHERE id = ?', [job_id]);
+        if (jobRows.length > 0) {
+            const { client_id, expert_id } = jobRows[0];
+            
+            // If sender is the expert, receiver is the client. If sender is client, receiver is expert.
+            const receiverId = (sender_id === expert_id) ? client_id : expert_id;
+
+            // 3. Create the notification for the receiver
+            await db.query(
+                'INSERT INTO notifications (user_id, type, content) VALUES (?, "message", ?)',
+                [receiverId, `New message in Job #${job_id}`]
+            );
+        }
+
         res.json({ success: true });
-    } catch (err) { res.status(500).json({ error: "Message failed" }); }
+    } catch (err) { 
+        console.error(err);
+        res.status(500).json({ error: "Message failed" }); 
+    }
 });
 
 app.get('/api/jobs/:jobId/messages', async (req, res) => {

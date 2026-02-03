@@ -1,7 +1,8 @@
 'use client';
 import { useState, useEffect, useRef } from 'react';
 import { useUserStore } from '@/store/useUserStore';
-import ExpertProfile from './ExpertProfile'; 
+import ExpertProfile from './ExpertProfile';
+import { toast } from 'sonner';
 import { CheckCircle, Lock, Send, Star, X } from 'lucide-react';
 
 export default function Workroom({ jobId }: { jobId: number }) {
@@ -12,6 +13,7 @@ export default function Workroom({ jobId }: { jobId: number }) {
   const [status, setStatus] = useState('assigned');
   const [expertId, setExpertId] = useState<number | null>(null); 
   const scrollRef = useRef<HTMLDivElement>(null);
+  const [lastMessageCount, setLastMessageCount] = useState(0);
   
   // --- FINALIZATION STATES ---
   const [showCompletionModal, setShowCompletionModal] = useState(false);
@@ -21,25 +23,47 @@ export default function Workroom({ jobId }: { jobId: number }) {
   const [selectedProfileId, setSelectedProfileId] = useState<number | null>(null);
 
   const fetchData = async () => {
-    try {
-      const msgRes = await fetch(`http://localhost:5000/api/jobs/${jobId}/messages`);
-      const msgData = await msgRes.json();
-      setMessages(msgData);
+    if (!user) return;
+  try {
+    // 1. Fetch the messages
+    const msgRes = await fetch(`http://localhost:5000/api/jobs/${jobId}/messages`);
+    const msgData = await msgRes.json();
 
-      const jobRes = await fetch(`http://localhost:5000/api/jobs/${jobId}`); 
-      const jobData = await jobRes.json();
+    // --- ADD THE TOAST LOGIC HERE ---
+    // If we have more messages than before, and it's not the initial page load
+    if (msgData.length > lastMessageCount && lastMessageCount !== 0) {
+      const latest = msgData[msgData.length - 1];
       
-      const currentJob = Array.isArray(jobData) ? jobData[0] : jobData; 
-      
-      if (currentJob) {
-        setStatus(currentJob.status);
-        setExpertId(currentJob.expert_id);
+      // Only show toast if the message is from the other person
+      if (latest.sender_id !== user?.id) {
+        toast.info(`Message from ${latest.username}`, {
+          description: latest.content.length > 40 
+            ? latest.content.substring(0, 40) + "..." 
+            : latest.content,
+        });
       }
-      setLoading(false);
-    } catch (err) {
-      console.error("Sync error:", err);
     }
-  };
+    // --------------------------------
+
+    // 2. Update the message states
+    setMessages(msgData);
+    setLastMessageCount(msgData.length); // Update our counter for the next check
+
+    // 3. Fetch job status (your existing code)
+    const jobRes = await fetch(`http://localhost:5000/api/jobs/${jobId}`); 
+    const jobData = await jobRes.json();
+    
+    const currentJob = Array.isArray(jobData) ? jobData[0] : jobData; 
+    
+    if (currentJob) {
+      setStatus(currentJob.status);
+      setExpertId(currentJob.expert_id);
+    }
+    setLoading(false);
+  } catch (err) {
+    console.error("Sync error:", err);
+  }
+};
 
   const handleComplete = async () => {
     if (!reviewText.trim()) {
@@ -61,8 +85,16 @@ export default function Workroom({ jobId }: { jobId: number }) {
       const data = await res.json();
 
       if (res.ok) {
-        // Updated Alert to reflect progressive difficulty
-        alert(`MISSION SUCCESS!\n\nYou are now Level ${data.newLevel} (${data.newRank}).\nNext Milestone: ${data.newLevel * 100} EXP needed.`);
+        // Destructure the data from your backend response
+        const { newLevel, newRank, nextMilestone, newExp } = data;
+
+        alert(
+          `MISSION SUCCESS!\n\n` +
+          `You are now Level ${newLevel} (${newRank}).\n` +
+          `Next Milestone: ${nextMilestone} total EXP needed.\n` +
+          `Current EXP: ${newExp}`
+        );
+        
         window.location.reload(); 
       } else {
         alert(data.error || "Failed to finalize mission");

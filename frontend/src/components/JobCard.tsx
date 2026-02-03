@@ -38,7 +38,7 @@ export default function JobCard({ job, onRefresh }: { job: any, onRefresh: () =>
       <div className="flex justify-between items-center mb-4">
         <div>
           <h3 className="text-xl font-black text-white uppercase tracking-tighter">{job.title}</h3>
-          <p className="text-gray-500 text-[10px] font-bold uppercase tracking-widest">XP{job.budget} • {job.status}</p>
+          <p className="text-gray-500 text-[10px] font-bold uppercase tracking-widest">EXP{job.budget} • {job.status}</p>
         </div>
         {job.status === 'open' && (
           <button onClick={fetchApplicants} className="text-[10px] font-black text-orange-500 border border-orange-500/30 px-4 py-2 rounded-xl">

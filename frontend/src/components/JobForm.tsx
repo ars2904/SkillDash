@@ -6,7 +6,7 @@ import { Zap, Target, Star } from 'lucide-react';
 export default function JobForm() {
   const { user } = useUserStore();
   const [title, setTitle] = useState('');
-  const [expReward, setExpReward] = useState('50'); // Default to 50 EXP
+  const [expReward, setExpReward] = useState('5'); // Default to 5 EXP
   const [description, setDescription] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -38,7 +38,7 @@ export default function JobForm() {
       if (res.ok) {
         alert("Mission Successfully Deployed to Feed!");
         setTitle('');
-        setExpReward('50');
+        setExpReward('5');
         setDescription('');
       } else {
         alert("Failed to deploy task.");
