@@ -18,17 +18,16 @@ app.use(express.json());
 // 2. EMAIL CONFIGURATION
 const transporter = nodemailer.createTransport({
     service: 'gmail',
+    host: 'smtp.gmail.com',
+    port: 465,
+    secure: true, // Use SSL
     auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS
     },
-});
-transporter.verify((error, success) => {
-  if (error) {
-    console.log("SMTP ERROR:", error);
-  } else {
-    console.log("SMTP CONNECTED");
-  }
+    tls: {
+        rejectUnauthorized: false // Helps prevent connection drops on some cloud providers
+    }
 });
 
 // 3. SOCKET.IO
