@@ -10,7 +10,7 @@ export default function RegisterPage() {
   const [password, setPassword] = useState('');
   const [role, setRole] = useState<'client' | 'expert'>('expert');
   const [loading, setLoading] = useState(false);
-  const [step, setStep] = useState<'info' | 'verify'>('info'); // Step control
+  const [step, /*setStep*/] = useState<'info' /*| 'verify'*/>('info'); // Step control
   const router = useRouter();
 
   // Step 1: Trigger the OTP email
