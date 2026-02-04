@@ -16,6 +16,7 @@ app.use(cors());
 app.use(express.json());
 
 // 2. EMAIL CONFIGURATION
+/*
 const transporter = nodemailer.createTransport({
     service: 'gmail',
     host: 'smtp.gmail.com',
@@ -28,7 +29,7 @@ const transporter = nodemailer.createTransport({
     tls: {
         rejectUnauthorized: false // Helps prevent connection drops on some cloud providers
     }
-});
+});*/
 
 // 3. SOCKET.IO
 const io = new Server(server, {
@@ -42,7 +43,8 @@ io.on('connection', (socket) => {
 // --- OTP AUTH SYSTEM ---
 
 app.post('/api/auth/send-otp', async (req, res) => {
-    const { email } = req.body;
+    return res.json({ success: true, message: "OTP bypassed for deployment." });
+    /*const { email } = req.body;
     const otp = Math.floor(100000 + Math.random() * 900000).toString(); 
     const expiresAt = new Date(Date.now() + 10 * 60000); // 10 minutes
 
@@ -76,11 +78,12 @@ app.post('/api/auth/send-otp', async (req, res) => {
     } catch (err) {
         console.error("OTP Error:", err);
         res.status(500).json({ error: "Failed to send verification code." });
-    }
+    } */
 });
 
 app.post('/api/auth/verify-otp', async (req, res) => {
-    const { email, otp } = req.body;
+    return res.json({ success: true, message: "Bypass authorized." });
+    /*const { email, otp } = req.body;
     try {
         const [rows] = await pool.query(
             'SELECT * FROM otp_verifications WHERE email = ? ORDER BY created_at DESC LIMIT 1',
@@ -104,7 +107,7 @@ app.post('/api/auth/verify-otp', async (req, res) => {
         res.json({ success: true });
     } catch (err) {
         res.status(500).json({ error: "Verification failed." });
-    }
+    }*/
 });
 
 // --- CORE USER ROUTES ---
