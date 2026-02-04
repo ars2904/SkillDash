@@ -109,16 +109,31 @@ app.post('/api/auth/verify-otp', async (req, res) => {
 
 // --- CORE USER ROUTES ---
 
+const bcrypt = require('bcrypt'); // Make sure to npm install bcrypt
+
 app.post('/api/register', async (req, res) => {
     const { username, email, password, role } = req.body;
+    
     try {
+        // 1. Hash the password for security
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        // 2. Insert into DB (is_verified is set to 1/true here)
         const [result] = await pool.query(
-            'INSERT INTO users (username, email, password_hash, role, user_rank, exp, current_level) VALUES (?, ?, ?, ?, "Novice", 0, 1)',
-            [username, email, password, role]
+            'INSERT INTO users (username, email, password_hash, role, user_rank, exp, current_level, is_verified) VALUES (?, ?, ?, ?, "Novice", 0, 1, 1)',
+            [username, email, hashedPassword, role]
         );
-        res.status(201).json({ userId: result.insertId });
+
+        // 3. Send back a clearer success message
+        res.status(201).json({ 
+            success: true,
+            userId: result.insertId,
+            message: "Account created and verified!" 
+        });
+
     } catch (err) { 
-        res.status(500).json({ error: "Registration failed" }); 
+        console.error(err);
+        res.status(500).json({ error: "Registration failed. Email might already exist." }); 
     }
 });
 

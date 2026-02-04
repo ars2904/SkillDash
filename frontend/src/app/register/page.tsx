@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import OTPInput from '@/components/OTPInput';
+// import OTPInput from '@/components/OTPInput'; // STOP WORKING
 
 export default function RegisterPage() {
   const [username, setUsername] = useState('');
@@ -18,7 +18,8 @@ export default function RegisterPage() {
     e.preventDefault();
     setLoading(true);
 
-    try {
+    // We comment out the actual fetch to the OTP API
+    /* try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/send-otp`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -26,7 +27,6 @@ export default function RegisterPage() {
       });
 
       if (res.ok) {
-        // Transition to the OTP input view
         setStep('verify');
       } else {
         const data = await res.json();
@@ -37,6 +37,10 @@ export default function RegisterPage() {
     } finally {
       setLoading(false);
     }
+    */
+
+    // INSTEAD: Just call the final registration immediately
+    completeRegistration();
   };
 
   // Step 2: Final Registration 
@@ -142,14 +146,15 @@ export default function RegisterPage() {
                 disabled={loading}
                 className={`w-full py-4 font-black rounded-2xl transition-all active:scale-95 disabled:opacity-50 mt-4 tracking-tighter text-sm uppercase italic ${role === 'expert' ? 'bg-blue-600 hover:bg-blue-500' : 'bg-orange-500 hover:bg-orange-400'} text-white`}
               >
-                {loading ? 'Requesting Code...' : 'Send Verification Code'}
+                {/* Changed the text slightly to reflect the bypass */}
+                {loading ? 'Initializing...' : 'Initialize Account'}
               </button>
             </form>
           </div>
         )}
 
-        {/* VIEW 2: OTP INPUT COMPONENT */}
-        {step === 'verify' && (
+        {/* VIEW 2: OTP INPUT COMPONENT (STOP WORKING) */}
+        {/* {step === 'verify' && (
           <div className="animate-in fade-in zoom-in-95 duration-500">
             <OTPInput 
               email={email} 
@@ -162,7 +167,8 @@ export default function RegisterPage() {
               ← Edit Account Details
             </button>
           </div>
-        )}
+        )} 
+        */}
 
         <div className="mt-8 pt-6 border-t border-gray-900 text-center">
           <p className="text-gray-600 text-[9px] font-black uppercase tracking-widest">

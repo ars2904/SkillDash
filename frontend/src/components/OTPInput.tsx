@@ -31,6 +31,8 @@ export default function OTPInput({ email, onVerified }: OTPInputProps) {
     setLoading(true);
     setError('');
     
+    // --- VERIFICATION LOGIC FROZEN ---
+    /*
     try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/verify-otp`, {
         method: 'POST',
@@ -49,6 +51,7 @@ export default function OTPInput({ email, onVerified }: OTPInputProps) {
     } finally {
       setLoading(false);
     }
+    */
   };
 
   const handleResend = async () => {
@@ -57,6 +60,8 @@ export default function OTPInput({ email, onVerified }: OTPInputProps) {
     setTimer(60); // Reset timer
     setError('');
 
+    // --- RESEND LOGIC FROZEN ---
+    /*
     try {
       await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/send-otp`, {
         method: 'POST',
@@ -66,16 +71,18 @@ export default function OTPInput({ email, onVerified }: OTPInputProps) {
     } catch (err) {
       setError("Failed to resend code.");
     }
+    */
   };
 
   return (
-    <div className="p-6 bg-[#111] border border-gray-800 rounded-3xl text-center">
-      <h2 className="text-xl font-black text-white italic mb-2 tracking-tighter">VERIFY PROTOCOL</h2>
+    /* --- ENTIRE UI BLOCKED OUT --- */
+    <div className="p-6 bg-[#111] border border-gray-800 rounded-3xl text-center opacity-50 pointer-events-none">
+      <h2 className="text-xl font-black text-white italic mb-2 tracking-tighter uppercase">Protocol Suspended</h2>
       <p className="text-[10px] text-gray-500 mb-6 uppercase tracking-widest font-bold">
-        Secure code sent to <span className="text-blue-400">{email}</span>
+        OTP Verification is currently bypassed.
       </p>
       
-      <input 
+      {/* <input 
         type="text" 
         maxLength={6}
         placeholder="000000"
@@ -92,26 +99,13 @@ export default function OTPInput({ email, onVerified }: OTPInputProps) {
 
       <button 
         onClick={handleVerify}
-        disabled={loading || otp.length < 6}
         className="w-full py-4 bg-white text-black font-black rounded-xl hover:bg-orange-500 hover:text-white transition-all disabled:opacity-30 disabled:cursor-not-allowed uppercase italic text-sm mb-4"
       >
-        {loading ? "AUTHENTICATING..." : "AUTHORIZE DEPLOYMENT"}
-      </button>
-
-      <div className="text-center">
-        {canResend ? (
-          <button 
-            onClick={handleResend}
-            className="text-[10px] font-black text-blue-500 hover:text-blue-400 uppercase tracking-widest transition-colors"
-          >
-            Resend New Code
-          </button>
-        ) : (
-          <p className="text-[10px] font-black text-gray-600 uppercase tracking-widest">
-            Resend available in {timer}s
-          </p>
-        )}
-      </div>
+        AUTHORIZE DEPLOYMENT
+      </button> 
+      */}
+      
+      <p className="text-[9px] font-black text-blue-500 uppercase tracking-widest">System bypass active</p>
     </div>
   );
 }
