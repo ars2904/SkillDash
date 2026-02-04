@@ -45,45 +45,35 @@ export default function RegisterPage() {
 
   // Step 2: Final Registration 
   const completeRegistration = async () => {
-  setLoading(true);
-  console.log("🚀 Starting Registration for:", email);
+    setLoading(true);
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          username, 
+          email, 
+          password, 
+          role,
+          user_rank: role === 'expert' ? 'Novice' : 'Bronze Patron',
+          exp: 0,
+          current_level: 1
+        }),
+      });
 
-  try {
-    // Fallback to a hardcoded URL if the env variable is missing
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://skilldash.onrender.com";
-    console.log("📡 Sending request to:", `${apiUrl}/api/register`);
-
-    const res = await fetch(`${apiUrl}/api/register`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ 
-        username, 
-        email, 
-        password, 
-        role,
-        user_rank: role === 'expert' ? 'Novice' : 'Bronze Patron',
-        exp: 0,
-        current_level: 1
-      }),
-    });
-
-    const data = await res.json();
-
-    if (res.ok) {
-      console.log("✅ Registration Success!");
-      alert("Node Initialized Successfully. Proceed to Login.");
-      router.push('/login');
-    } else {
-      console.error("❌ Registration Failed:", data.error);
-      alert(data.error || "Final initialization failed");
+      if (res.ok) {
+        alert("Node Initialized Successfully. Proceed to Login.");
+        router.push('/login');
+      } else {
+        const data = await res.json();
+        alert(data.error || "Final initialization failed");
+      }
+    } catch (err) {
+      alert("Registration error");
+    } finally {
+      setLoading(false);
     }
-  } catch (err) {
-    console.error("🚨 Network Error:", err);
-    alert("Registration error - check console");
-  } finally {
-    setLoading(false);
-  }
-};
+  };
 
   return (
     <div className="min-h-screen bg-black flex flex-col items-center justify-center p-4">

@@ -125,8 +125,8 @@ app.post('/api/register', async (req, res) => {
 
         // 2. Insert into DB (is_verified is set to 1/true here)
         const [result] = await pool.query(
-            'INSERT INTO users (username, email, password_hash, role, user_rank, exp, current_level, is_verified) VALUES (?, ?, ?, ?, "Novice", 0, 1, 1)',
-            [username, email, hashedPassword, role]
+            'INSERT INTO users (username, email, password_hash, role,current_role user_rank, exp, current_level, is_verified) VALUES (?, ?, ?, ?, "Novice", 0, 1, 1)',
+            [username, email, hashedPassword, role,role]
         );
 
         // 3. Send back a clearer success message
