@@ -9,7 +9,7 @@ export default function JobCard({ job, onRefresh }: { job: any, onRefresh: () =>
 
   const fetchApplicants = async () => {
     if (!showApplicants) {
-      const res = await fetch(`http://localhost:5000/api/jobs/${job.id}/applicants`);
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/jobs/${job.id}/applicants`);
       const data = await res.json();
       setApplicants(data);
     }
@@ -18,7 +18,7 @@ export default function JobCard({ job, onRefresh }: { job: any, onRefresh: () =>
 
   const handleHire = async (expertId: number) => {
     if (!confirm("Hire this expert?")) return;
-    const res = await fetch(`http://localhost:5000/api/jobs/${job.id}/hire`, {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/jobs/${job.id}/hire`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ expert_id: expertId })

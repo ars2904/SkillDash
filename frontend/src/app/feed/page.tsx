@@ -9,7 +9,7 @@ export default function ExpertFeed() {
   const [applyingId, setApplyingId] = useState<number | null>(null);
 
   const fetchJobs = async () => {
-    const res = await fetch('http://localhost:5000/api/jobs');
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/jobs`);
     const data = await res.json();
     // Only show "open" jobs
     setJobs(data.filter((j: any) => j.status === 'open'));
@@ -21,7 +21,7 @@ export default function ExpertFeed() {
 
   const handleApply = async (jobId: number) => {
     setApplyingId(jobId);
-    const res = await fetch('http://localhost:5000/api/applications', {
+    const res = await fetch('fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/applications`', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ job_id: jobId, expert_id: user?.id })

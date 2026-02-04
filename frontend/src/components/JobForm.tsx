@@ -29,7 +29,7 @@ export default function JobForm() {
     };
 
     try {
-      const res = await fetch('http://localhost:5000/api/jobs', {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/jobs`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(jobData),

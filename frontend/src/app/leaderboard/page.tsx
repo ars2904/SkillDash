@@ -15,7 +15,7 @@ export default function LeaderboardPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch('http://localhost:5000/api/leaderboard')
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/leaderboard`)
       .then(res => res.json())
       .then(data => {
         setLeaders(data);

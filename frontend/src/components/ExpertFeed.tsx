@@ -10,7 +10,7 @@ export default function ExpertFeed() {
 
   // Fetch jobs from the backend
   useEffect(() => {
-    fetch('http://localhost:5000/api/jobs')
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/jobs`)
       .then(res => res.json())
       .then(data => setJobs(data))
       .catch(err => console.error("Error fetching feed:", err));
@@ -19,7 +19,7 @@ export default function ExpertFeed() {
   // Logic to apply for a job
   const handleApply = async (jobId: number) => {
     try {
-      const res = await fetch('http://localhost:5000/api/applications', {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/applications`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ job_id: jobId, expert_id: user?.id })
@@ -35,7 +35,7 @@ export default function ExpertFeed() {
     if (!user?.id) return alert("Please log in first");
     
     try {
-      const res = await fetch('http://localhost:5000/api/connections', {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/connections`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 

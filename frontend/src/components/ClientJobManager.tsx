@@ -22,9 +22,9 @@ export default function ClientJobManager() {
     try {
       // Fetching all data in parallel
       const [jobRes, reqRes, friendsRes] = await Promise.all([
-        fetch(`http://localhost:5000/api/jobs?client_id=${user.id}`),
-        fetch(`http://localhost:5000/api/friends/pending/${user.id}`),
-        fetch(`http://localhost:5000/api/friends/${user.id}`)
+        fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/jobs?client_id=${user.id}`),
+        fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/friends/pending/${user.id}`),
+        fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/friends/${user.id}`)
       ]);
       
       setMyJobs(await jobRes.json());

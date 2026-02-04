@@ -10,7 +10,7 @@ export default function ExpertProfile({ expertId, onClose }: { expertId: number,
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const res = await fetch(`http://localhost:5000/api/users/${expertId}/profile?currentUserId=${currentUser?.id}`);
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/users/${expertId}/profile?currentUserId=${currentUser?.id}`);
         const json = await res.json();
         setData(json);
         setLoading(false);
@@ -22,7 +22,7 @@ export default function ExpertProfile({ expertId, onClose }: { expertId: number,
   }, [expertId, currentUser]);
 
   const handleFriendRequest = async () => {
-    const res = await fetch('http://localhost:5000/api/friends/request', {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/friends/request`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ sender_id: currentUser?.id, receiver_id: expertId })

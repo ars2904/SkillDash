@@ -32,7 +32,7 @@ export default function OTPInput({ email, onVerified }: OTPInputProps) {
     setError('');
     
     try {
-      const res = await fetch('http://localhost:5000/api/auth/verify-otp', {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/verify-otp`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, otp }),
@@ -58,7 +58,7 @@ export default function OTPInput({ email, onVerified }: OTPInputProps) {
     setError('');
 
     try {
-      await fetch('http://localhost:5000/api/auth/send-otp', {
+      await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/send-otp`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email }),

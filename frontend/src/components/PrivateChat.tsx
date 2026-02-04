@@ -8,7 +8,7 @@ export default function PrivateChat({ connection, currentUser, onBack }: { conne
 
   const fetchMsgs = async () => {
     try {
-      const res = await fetch(`http://localhost:5000/api/connections/${connection.connection_id}/messages`);
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/connections/${connection.connection_id}/messages`);
       setChat(await res.json());
     } catch (e) { console.error("Chat fetch error", e); }
   };
@@ -21,7 +21,7 @@ export default function PrivateChat({ connection, currentUser, onBack }: { conne
 
   const sendMsg = async () => {
     if (!msg.trim()) return;
-    await fetch(`http://localhost:5000/api/connections/messages`, {
+    await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/connections/messages`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ connection_id: connection.connection_id, sender_id: currentUser.id, content: msg })

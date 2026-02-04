@@ -15,13 +15,13 @@ export default function SearchPage() {
       setResults([]);
       return;
     }
-    const res = await fetch(`http://localhost:5000/api/users/search?q=${val}`);
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/users/search?q=${val}`);
     const data = await res.json();
     setResults(data.filter((u: any) => u.id !== user?.id));
   };
 
   const sendRequest = async (targetId: number) => {
-    const res = await fetch('http://localhost:5000/api/connections', {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/connections`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ user_one_id: user?.id, user_two_id: targetId }),

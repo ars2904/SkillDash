@@ -19,7 +19,7 @@ export default function RegisterPage() {
     setLoading(true);
 
     try {
-      const res = await fetch('http://localhost:5000/api/auth/send-otp', {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/send-otp`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email }),
@@ -43,7 +43,7 @@ export default function RegisterPage() {
   const completeRegistration = async () => {
     setLoading(true);
     try {
-      const res = await fetch('http://localhost:5000/api/register', {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 

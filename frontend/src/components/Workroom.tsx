@@ -26,7 +26,7 @@ export default function Workroom({ jobId }: { jobId: number }) {
     if (!user) return;
   try {
     // 1. Fetch the messages
-    const msgRes = await fetch(`http://localhost:5000/api/jobs/${jobId}/messages`);
+    const msgRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/jobs/${jobId}/messages`);
     const msgData = await msgRes.json();
 
     // --- ADD THE TOAST LOGIC HERE ---
@@ -50,7 +50,7 @@ export default function Workroom({ jobId }: { jobId: number }) {
     setLastMessageCount(msgData.length); // Update our counter for the next check
 
     // 3. Fetch job status (your existing code)
-    const jobRes = await fetch(`http://localhost:5000/api/jobs/${jobId}`); 
+    const jobRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/jobs/${jobId}`); 
     const jobData = await jobRes.json();
     
     const currentJob = Array.isArray(jobData) ? jobData[0] : jobData; 
@@ -73,7 +73,7 @@ export default function Workroom({ jobId }: { jobId: number }) {
 
     setIsSubmitting(true);
     try {
-      const res = await fetch(`http://localhost:5000/api/jobs/${jobId}/complete`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/jobs/${jobId}/complete`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
@@ -119,7 +119,7 @@ export default function Workroom({ jobId }: { jobId: number }) {
   const sendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!text.trim() || !user || status === 'completed') return;
-    const res = await fetch('http://localhost:5000/api/messages', {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/messages`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ job_id: jobId, sender_id: user.id, content: text })

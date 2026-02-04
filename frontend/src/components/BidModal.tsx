@@ -1,3 +1,4 @@
+/*
 'use client';
 import { useState } from 'react';
 
@@ -53,3 +54,4 @@ export default function BidModal({ job, onClose }: { job: any, onClose: () => vo
     </div>
   );
 }
+*/

@@ -3,7 +3,7 @@ import { UserCheck, UserX } from 'lucide-react';
 
 export default function ConnectionRequestCard({ req, onRefresh }: { req: any, onRefresh: () => void }) {
   const handleAction = async (status: 'accepted' | 'rejected') => {
-    await fetch(`http://localhost:5000/api/friends/respond`, {
+    await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/friends/respond`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ 

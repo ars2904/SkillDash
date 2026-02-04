@@ -20,7 +20,7 @@ export default function ExpertWorkrooms() {
       
       try {
         setError(null);
-        const res = await fetch(`http://localhost:5000/api/jobs/assigned/${user.id}`);
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/jobs/assigned/${user.id}`);
         
         // Check if the response is actually valid JSON/OK
         if (!res.ok) {
