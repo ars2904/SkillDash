@@ -116,10 +116,12 @@ const bcrypt = require('bcrypt'); // Make sure to npm install bcrypt
 
 app.post('/api/register', async (req, res) => {
     const { username, email, password, role } = req.body;
+
+    // 1. Hash the password for security
+        const hashedPassword = await bcrypt.hash(password, 10);
     
     try {
-        // 1. Hash the password for security
-        const hashedPassword = await bcrypt.hash(password, 10);
+        
 
         // 2. Insert into DB (is_verified is set to 1/true here)
         const [result] = await pool.query(
@@ -170,8 +172,20 @@ app.post('/api/login', async (req, res) => {
     try {
         const [users] = await pool.query('SELECT * FROM users WHERE email = ?', [email]);
         const user = users[0];
-        if (!user || user.password_hash !== password) return res.status(401).json({ error: "Invalid credentials" });
+
+        // 1. Check if user exists
+        if (!user) {
+            return res.status(401).json({ error: "Invalid credentials" });
+        }
+
+        // 2. USE BCRYPT TO COMPARE (Crucial Step!)
+        const isMatch = await bcrypt.compare(password, user.password_hash);
         
+        if (!isMatch) {
+            return res.status(401).json({ error: "Invalid credentials" });
+        }
+        
+        // 3. If match, send the user data
         res.json({ 
             id: user.id, 
             username: user.username,
@@ -181,7 +195,10 @@ app.post('/api/login', async (req, res) => {
             exp: user.exp,
             current_level: user.current_level
         });
-    } catch (err) { res.status(500).json({ error: "Login failed" }); }
+    } catch (err) { 
+        console.error(err);
+        res.status(500).json({ error: "Login failed" }); 
+    }
 });
 
 // --- CONNECTION SYSTEM ---

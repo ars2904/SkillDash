@@ -76,7 +76,7 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen bg-black flex items-center justify-center p-4">
+    <div className="min-h-screen bg-black flex flex-col items-center justify-center p-4">
       <div className="w-full max-w-md p-8 bg-[#0a0a0a] border border-gray-900 rounded-[2.5rem] shadow-2xl">
         
         {/* VIEW 1: REGISTRATION FORM */}
@@ -146,7 +146,6 @@ export default function RegisterPage() {
                 disabled={loading}
                 className={`w-full py-4 font-black rounded-2xl transition-all active:scale-95 disabled:opacity-50 mt-4 tracking-tighter text-sm uppercase italic ${role === 'expert' ? 'bg-blue-600 hover:bg-blue-500' : 'bg-orange-500 hover:bg-orange-400'} text-white`}
               >
-                {/* Changed the text slightly to reflect the bypass */}
                 {loading ? 'Initializing...' : 'Initialize Account'}
               </button>
             </form>
@@ -178,6 +177,22 @@ export default function RegisterPage() {
             </Link>
           </p>
         </div>
+      </div>
+
+      {/* OTP UNAVAILABLE NOTICE */}
+      <div className="mt-6 text-center max-w-md mx-auto px-4">
+        <p className="text-[9px] font-black uppercase tracking-widest text-gray-500 leading-relaxed">
+          Due to unforeseen circumstances, OTP verification is currently unavailable.
+          <br />
+          Please proceed by{' '}
+          <Link
+            href="/login"
+            className="text-white underline decoration-gray-700 underline-offset-4 hover:text-orange-500 transition-colors"
+          >
+            returning to login
+          </Link>
+          .
+        </p>
       </div>
     </div>
   );
