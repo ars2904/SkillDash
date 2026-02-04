@@ -41,7 +41,7 @@ app.post('/api/auth/send-otp', async (req, res) => {
     const expiresAt = new Date(Date.now() + 10 * 60000); // 10 minutes
 
     try {
-        await db.query(
+        await pool.query(
             'INSERT INTO otp_verifications (email, otp_code, expires_at) VALUES (?, ?, ?)',
             [email, otp, expiresAt]
         );
@@ -76,7 +76,7 @@ app.post('/api/auth/send-otp', async (req, res) => {
 app.post('/api/auth/verify-otp', async (req, res) => {
     const { email, otp } = req.body;
     try {
-        const [rows] = await db.query(
+        const [rows] = await pool.query(
             'SELECT * FROM otp_verifications WHERE email = ? ORDER BY created_at DESC LIMIT 1',
             [email]
         );
@@ -94,7 +94,7 @@ app.post('/api/auth/verify-otp', async (req, res) => {
             return res.status(400).json({ error: "Invalid code." });
         }
 
-        await db.query('DELETE FROM otp_verifications WHERE email = ?', [email]);
+        await pool.query('DELETE FROM otp_verifications WHERE email = ?', [email]);
         res.json({ success: true });
     } catch (err) {
         res.status(500).json({ error: "Verification failed." });
@@ -106,7 +106,7 @@ app.post('/api/auth/verify-otp', async (req, res) => {
 app.post('/api/register', async (req, res) => {
     const { username, email, password, role } = req.body;
     try {
-        const [result] = await db.query(
+        const [result] = await pool.query(
             'INSERT INTO users (username, email, password_hash, role, user_rank, exp, current_level) VALUES (?, ?, ?, ?, "Novice", 0, 1)',
             [username, email, password, role]
         );
@@ -123,13 +123,13 @@ app.put('/api/auth/reset-password', async (req, res) => {
     
     try {
         // 1. Check if user exists
-        const [users] = await db.query('SELECT id FROM users WHERE email = ?', [email]);
+        const [users] = await pool.query('SELECT id FROM users WHERE email = ?', [email]);
         if (users.length === 0) {
             return res.status(404).json({ error: "No account found with this email." });
         }
 
         // 2. Update the password
-        await db.query(
+        await pool.query(
             'UPDATE users SET password_hash = ? WHERE email = ?',
             [newPassword, email]
         );
@@ -144,7 +144,7 @@ app.put('/api/auth/reset-password', async (req, res) => {
 app.post('/api/login', async (req, res) => {
     const { email, password } = req.body;
     try {
-        const [users] = await db.query('SELECT * FROM users WHERE email = ?', [email]);
+        const [users] = await pool.query('SELECT * FROM users WHERE email = ?', [email]);
         const user = users[0];
         if (!user || user.password_hash !== password) return res.status(401).json({ error: "Invalid credentials" });
         
@@ -166,7 +166,7 @@ app.post('/api/connections', async (req, res) => {
     const { user_one_id, user_two_id } = req.body;
     try {
         const [id1, id2] = [user_one_id, user_two_id].sort((a, b) => a - b);
-        await db.query(
+        await pool.query(
             `INSERT INTO connections (user_one_id, user_two_id, status, sender_id) 
              VALUES (?, ?, "pending", ?) 
              ON DUPLICATE KEY UPDATE status="pending", sender_id=?`,
@@ -178,7 +178,7 @@ app.post('/api/connections', async (req, res) => {
 
 app.get('/api/friends/pending/:userId', async (req, res) => {
     try {
-        const [rows] = await db.query(
+        const [rows] = await pool.query(
             `SELECT c.id as connection_id, u.username as sender_name, u.id as sender_id 
              FROM connections c
              JOIN users u ON c.sender_id = u.id
@@ -193,14 +193,14 @@ app.get('/api/friends/pending/:userId', async (req, res) => {
 app.put('/api/friends/respond', async (req, res) => {
     const { connection_id, status } = req.body;
     try {
-        await db.query('UPDATE connections SET status = ? WHERE id = ?', [status, connection_id]);
+        await pool.query('UPDATE connections SET status = ? WHERE id = ?', [status, connection_id]);
         res.json({ success: true });
     } catch (err) { res.status(500).json({ error: "Update failed" }); }
 });
 
 app.get('/api/friends/:userId', async (req, res) => {
     try {
-        const [rows] = await db.query(
+        const [rows] = await pool.query(
             `SELECT c.id as connection_id, u.id as id, u.username, u.user_rank, u.current_level 
              FROM connections c
              JOIN users u ON (c.user_one_id = u.id OR c.user_two_id = u.id)
@@ -216,14 +216,14 @@ app.get('/api/friends/:userId', async (req, res) => {
 
 app.get('/api/jobs/assigned/:expertId', async (req, res) => {
     try {
-        const [rows] = await db.query('SELECT * FROM jobs WHERE expert_id = ? AND status = "assigned"', [req.params.expertId]);
+        const [rows] = await pool.query('SELECT * FROM jobs WHERE expert_id = ? AND status = "assigned"', [req.params.expertId]);
         res.json(rows);
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
 app.get('/api/jobs/:id', async (req, res) => {
     try {
-        const [rows] = await db.query('SELECT * FROM jobs WHERE id = ?', [req.params.id]);
+        const [rows] = await pool.query('SELECT * FROM jobs WHERE id = ?', [req.params.id]);
         if (rows.length === 0) return res.status(404).json({ error: "Job not found" });
         res.json(rows[0]);
     } catch (err) { res.status(500).json({ error: err.message }); }
@@ -232,7 +232,7 @@ app.get('/api/jobs/:id', async (req, res) => {
 app.post('/api/jobs', async (req, res) => {
     const { client_id, title, description, exp_reward, category } = req.body;
     try {
-        const [result] = await db.query(
+        const [result] = await pool.query(
             'INSERT INTO jobs (client_id, title, description, exp_reward, category, status) VALUES (?, ?, ?, ?, ?, "open")',
             [client_id, title, description, exp_reward, category]
         );
@@ -246,7 +246,7 @@ app.get('/api/jobs', async (req, res) => {
         let query = 'SELECT * FROM jobs';
         let params = [];
         if (client_id) { query += ' WHERE client_id = ?'; params.push(client_id); }
-        const [rows] = await db.query(query + ' ORDER BY created_at DESC', params);
+        const [rows] = await pool.query(query + ' ORDER BY created_at DESC', params);
         res.json(rows);
     } catch (err) { res.status(500).json(err); }
 });
@@ -256,7 +256,7 @@ app.get('/api/jobs', async (req, res) => {
 app.post('/api/applications', async (req, res) => {
     const { job_id, expert_id } = req.body;
     try {
-        await db.query(
+        await pool.query(
             'INSERT INTO applications (job_id, expert_id, status) VALUES (?, ?, "pending") ON DUPLICATE KEY UPDATE status="pending"',
             [job_id, expert_id]
         );
@@ -266,7 +266,7 @@ app.post('/api/applications', async (req, res) => {
 
 app.get('/api/jobs/:jobId/applicants', async (req, res) => {
     try {
-        const [rows] = await db.query(
+        const [rows] = await pool.query(
             `SELECT a.id as application_id, a.status, u.id as expert_id, u.username, u.user_rank, u.current_level 
              FROM applications a JOIN users u ON a.expert_id = u.id WHERE a.job_id = ?`, 
             [req.params.jobId]
@@ -278,8 +278,8 @@ app.get('/api/jobs/:jobId/applicants', async (req, res) => {
 app.put('/api/jobs/:jobId/hire', async (req, res) => {
     const { expert_id } = req.body;
     try {
-        await db.query('UPDATE jobs SET status = "assigned", expert_id = ? WHERE id = ?', [expert_id, req.params.jobId]);
-        await db.query('UPDATE applications SET status = "accepted" WHERE job_id = ? AND expert_id = ?', [req.params.jobId, expert_id]);
+        await pool.query('UPDATE jobs SET status = "assigned", expert_id = ? WHERE id = ?', [expert_id, req.params.jobId]);
+        await pool.query('UPDATE applications SET status = "accepted" WHERE job_id = ? AND expert_id = ?', [req.params.jobId, expert_id]);
         res.json({ success: true });
     } catch (err) { res.status(500).json({ error: "Hiring failed" }); }
 });
@@ -292,7 +292,7 @@ app.put('/api/jobs/:jobId/complete', async (req, res) => {
 
     try {
         // Fetch job
-        const [jobRows] = await db.query(
+        const [jobRows] = await pool.query(
             'SELECT client_id, expert_id, exp_reward FROM jobs WHERE id = ?',
             [jobId]
         );
@@ -303,13 +303,13 @@ app.put('/api/jobs/:jobId/complete', async (req, res) => {
         }
 
         // Mark job as completed
-        await db.query(
+        await pool.query(
             'UPDATE jobs SET status = "completed" WHERE id = ?',
             [jobId]
         );
 
         // ================= EXPERT EXP LOGIC =================
-        const [expertRows] = await db.query(
+        const [expertRows] = await pool.query(
             'SELECT exp, current_level FROM users WHERE id = ?',
             [job.expert_id]
         );
@@ -330,13 +330,13 @@ app.put('/api/jobs/:jobId/complete', async (req, res) => {
             "Elite"
         ];
 
-        await db.query(
+        await pool.query(
             'UPDATE users SET exp = ?, current_level = ?, user_rank = ? WHERE id = ?',
             [eExp, eLevel, expertRanks[eLevel - 1], job.expert_id]
         );
 
         // ================= CLIENT EXP LOGIC =================
-        const [clientRows] = await db.query(
+        const [clientRows] = await pool.query(
             'SELECT exp, current_level FROM users WHERE id = ?',
             [job.client_id]
         );
@@ -357,14 +357,14 @@ app.put('/api/jobs/:jobId/complete', async (req, res) => {
             "Legend",
         ];
 
-        await db.query(
+        await pool.query(
             'UPDATE users SET exp = ?, current_level = ?, user_rank = ? WHERE id = ?',
             [cExp, cLevel, clientRanks[cLevel - 1], job.client_id]
         );
 
         // ================= REVIEW =================
         if (review && rating) {
-            await db.query(
+            await pool.query(
                 'INSERT INTO reviews (job_id, reviewer_id, expert_id, rating, comment) VALUES (?, ?, ?, ?, ?)',
                 [jobId, job.client_id, job.expert_id, rating, review]
             );
@@ -391,7 +391,7 @@ app.get('/api/notifications/:userId', async (req, res) => {
 
     try {
         // 1. Get all unread notifications
-        const [rows] = await db.query(
+        const [rows] = await pool.query(
             'SELECT * FROM notifications WHERE user_id = ? AND is_read = FALSE ORDER BY created_at ASC',
             [userId]
         );
@@ -399,7 +399,7 @@ app.get('/api/notifications/:userId', async (req, res) => {
         // 2. Mark them as read immediately so they don't pop up again on the next poll
         if (rows.length > 0) {
             const ids = rows.map(n => n.id);
-            await db.query('UPDATE notifications SET is_read = TRUE WHERE id IN (?)', [ids]);
+            await pool.query('UPDATE notifications SET is_read = TRUE WHERE id IN (?)', [ids]);
         }
 
         res.json(rows);
@@ -415,10 +415,10 @@ app.post('/api/messages', async (req, res) => {
     const { job_id, sender_id, content } = req.body;
     try {
         // 1. Save the actual message
-        await db.query('INSERT INTO messages (job_id, sender_id, content) VALUES (?, ?, ?)', [job_id, sender_id, content]);
+        await pool.query('INSERT INTO messages (job_id, sender_id, content) VALUES (?, ?, ?)', [job_id, sender_id, content]);
 
         // 2. Find out who the receiver is
-        const [jobRows] = await db.query('SELECT client_id, expert_id FROM jobs WHERE id = ?', [job_id]);
+        const [jobRows] = await pool.query('SELECT client_id, expert_id FROM jobs WHERE id = ?', [job_id]);
         if (jobRows.length > 0) {
             const { client_id, expert_id } = jobRows[0];
             
@@ -426,7 +426,7 @@ app.post('/api/messages', async (req, res) => {
             const receiverId = (sender_id === expert_id) ? client_id : expert_id;
 
             // 3. Create the notification for the receiver
-            await db.query(
+            await pool.query(
                 'INSERT INTO notifications (user_id, type, content) VALUES (?, "message", ?)',
                 [receiverId, `New message in Job #${job_id}`]
             );
@@ -441,7 +441,7 @@ app.post('/api/messages', async (req, res) => {
 
 app.get('/api/jobs/:jobId/messages', async (req, res) => {
     try {
-        const [rows] = await db.query(
+        const [rows] = await pool.query(
             'SELECT m.*, u.username FROM messages m JOIN users u ON m.sender_id = u.id WHERE m.job_id = ? ORDER BY m.created_at ASC',
             [req.params.jobId]
         );
@@ -453,14 +453,14 @@ app.get('/api/jobs/:jobId/messages', async (req, res) => {
 
 app.get('/api/users/search', async (req, res) => {
     try {
-        const [rows] = await db.query('SELECT id, username, user_rank, current_level FROM users WHERE username LIKE ? LIMIT 10', [`%${req.query.q}%`]);
+        const [rows] = await pool.query('SELECT id, username, user_rank, current_level FROM users WHERE username LIKE ? LIMIT 10', [`%${req.query.q}%`]);
         res.json(rows);
     } catch (err) { res.status(500).json(err); }
 });
 
 app.get('/api/connections/:connectionId/messages', async (req, res) => {
     try {
-        const [rows] = await db.query(
+        const [rows] = await pool.query(
             'SELECT m.*, u.username FROM messages m JOIN users u ON m.sender_id = u.id WHERE m.connection_id = ? ORDER BY m.created_at ASC',
             [req.params.connectionId]
         );
@@ -471,7 +471,7 @@ app.get('/api/connections/:connectionId/messages', async (req, res) => {
 app.post('/api/connections/messages', async (req, res) => {
     const { connection_id, sender_id, content } = req.body;
     try {
-        await db.query('INSERT INTO messages (connection_id, sender_id, content) VALUES (?, ?, ?)', [connection_id, sender_id, content]);
+        await pool.query('INSERT INTO messages (connection_id, sender_id, content) VALUES (?, ?, ?)', [connection_id, sender_id, content]);
         res.json({ success: true });
     } catch (err) { res.status(500).json(err); }
 });
@@ -480,7 +480,7 @@ app.post('/api/connections/messages', async (req, res) => {
 
 app.get('/api/leaderboard', async (req, res) => {
     try {
-        const [rows] = await db.query(`
+        const [rows] = await pool.query(`
             SELECT id, username, user_rank, current_level, exp 
             FROM users 
             ORDER BY current_level DESC, exp DESC 
@@ -506,7 +506,7 @@ app.get('/api/history/:userId', (req, res) => {
     ORDER BY completed_at DESC
   `;
 
-  db.query(sql, [userId], (err, results) => {
+  pool.query(sql, [userId], (err, results) => {
     if (err) {
       console.error("Database Error:", err);
       return res.status(500).json({ error: "Query failed" });
@@ -535,7 +535,7 @@ app.get('/api/connections/:userId', (req, res) => {
    */
   const sql = "SELECT id, username, user_rank FROM users WHERE id != ? LIMIT 4";
 
-  db.query(sql, [userId], (err, results) => {
+  pool.query(sql, [userId], (err, results) => {
     if (err) {
       console.error("Database Error:", err);
       return res.status(500).json({ error: "Internal Server Error" });
