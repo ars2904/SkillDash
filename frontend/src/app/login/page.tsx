@@ -68,14 +68,13 @@ export default function LoginPage() {
 
       {/* ================= SYSTEM BRIEFING ================= */}
 {showBriefing && (
-  <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/90 backdrop-blur-xl p-4">
-    <div className="w-full max-w-2xl bg-[#0a0a0a] border border-white/10 rounded-[2.5rem] p-8 md:p-12 shadow-[0_20px_60px_-15px_rgba(0,0,0,1)] animate-in zoom-in-95 duration-300 relative overflow-hidden">
+  <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/90 backdrop-blur-xl p-4 transition-opacity duration-500">
+    <div className="w-full max-w-2xl bg-[#0a0a0a] border border-white/10 rounded-[2.5rem] p-8 md:p-12 shadow-[0_0_60px_-15px_rgba(249,115,22,0.4)] relative overflow-hidden transition-all duration-500 ease-out animate-none">
       
-      {/* Subtle Glow Header Accent */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 h-px w-64 bg-gradient-to-r from-transparent via-orange-500/50 to-transparent" />
+      {/* Top Glow Line */}
+      <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-orange-500 to-transparent opacity-50" />
 
       <div className="relative z-10">
-        {/* Heading Section */}
         <div className="text-center mb-10">
           <p className="text-[10px] tracking-[0.5em] text-orange-500 font-bold uppercase mb-2">Protocol Initialized</p>
           <h2 className="text-4xl md:text-5xl font-black text-white italic tracking-tighter uppercase leading-none">
@@ -83,23 +82,20 @@ export default function LoginPage() {
           </h2>
         </div>
 
-        {/* Intro Section */}
         <div className="space-y-4 mb-10 text-center">
           <p className="text-gray-200 text-lg font-medium leading-relaxed max-w-md mx-auto">
             SkillDash is a platform for posting problems and delivering solutions through structured tasks.
           </p>
-          <p className="text-gray-500 text-xs uppercase tracking-[0.2em] font-bold">
+          <p className="text-gray-500 text-[10px] uppercase tracking-[0.3em] font-bold">
             Users participate in one of two roles.
           </p>
         </div>
 
-        {/* Roles Grid */}
         <div className="grid md:grid-cols-2 gap-4 mb-10">
           {/* Clients Card */}
           <div className="group p-6 bg-[#111] border border-white/5 rounded-3xl hover:border-orange-500/40 transition-all duration-300">
             <div className="flex gap-1.5 mb-4">
               <div className="w-2.5 h-2.5 rounded-full bg-orange-500 shadow-[0_0_10px_#f97316]" />
-              <div className="w-2.5 h-2.5 rounded-full bg-orange-500/10" />
             </div>
             <span className="text-orange-400 font-black text-sm uppercase tracking-widest">Clients</span>
             <p className="text-gray-400 mt-3 text-[13px] leading-relaxed">
@@ -111,7 +107,6 @@ export default function LoginPage() {
           <div className="group p-6 bg-[#111] border border-white/5 rounded-3xl hover:border-cyan-500/40 transition-all duration-300">
             <div className="flex gap-1.5 mb-4">
               <div className="w-2.5 h-2.5 rounded-full bg-cyan-400 shadow-[0_0_10px_#22d3ee]" />
-              <div className="w-2.5 h-2.5 rounded-full bg-cyan-400/10" />
             </div>
             <span className="text-cyan-400 font-black text-sm uppercase tracking-widest">Experts</span>
             <p className="text-gray-400 mt-3 text-[13px] leading-relaxed">
@@ -120,20 +115,16 @@ export default function LoginPage() {
           </div>
         </div>
 
-        {/* Footer Text */}
         <p className="text-gray-600 text-[10px] leading-relaxed mb-8 text-center px-4 uppercase tracking-[0.1em]">
           Your role determines available actions, visibility, and system access. <br/> You’ll select it during registration.
         </p>
 
-        {/* I Understand Button */}
         <button
           onClick={closeBriefing}
           className="group relative w-full overflow-hidden h-16 bg-gradient-to-r from-orange-600 via-orange-400 to-cyan-500 text-white font-black rounded-2xl transition-all active:scale-95 shadow-[0_10px_40px_-10px_rgba(249,115,22,0.5)]"
         >
-          <div className="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors" />
           <span className="relative z-10 text-lg uppercase tracking-[0.2em]">I Understand</span>
-          {/* Subtle shine effect on hover */}
-          <div className="absolute inset-0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700 bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+          <div className="absolute inset-0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000 bg-gradient-to-r from-transparent via-white/20 to-transparent" />
         </button>
       </div>
     </div>
