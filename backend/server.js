@@ -115,32 +115,44 @@ app.post('/api/auth/verify-otp', async (req, res) => {
 const bcrypt = require('bcrypt'); // Make sure to npm install bcrypt
 
 app.post('/api/register', async (req, res) => {
+  try {
     const { username, email, password, role } = req.body;
 
-    // 1. Hash the password for security
-        const hashedPassword = await bcrypt.hash(password, 10);
-    
-    try {
-        
-
-        // 2. Insert into DB (is_verified is set to 1/true here)
-        const [result] = await pool.query(
-            'INSERT INTO users (username, email, password_hash, role,current_role user_rank, exp, current_level, is_verified) VALUES (?, ?, ?, ?, "Novice", 0, 1, 1)',
-            [username, email, hashedPassword, role,role]
-        );
-
-        // 3. Send back a clearer success message
-        res.status(201).json({ 
-            success: true,
-            userId: result.insertId,
-            message: "Account created and verified!" 
-        });
-
-    } catch (err) { 
-        console.error(err);
-        res.status(500).json({ error: "Registration failed. Email might already exist." }); 
+    // Basic validation
+    if (!username || !email || !password || !role) {
+      return res.status(400).json({ error: "All fields are required" });
     }
+
+    // Hash password
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Insert user with default starting values
+    const [result] = await pool.query(
+      `INSERT INTO users 
+      (username, email, password_hash, role, user_rank, exp, current_level, is_verified)
+      VALUES (?, ?, ?, ?, 'Novice', 0, 1, 1)`,
+      [username, email, hashedPassword, role]
+    );
+
+    // Success response
+    res.status(201).json({
+      success: true,
+      userId: result.insertId,
+      message: "Account created and verified!"
+    });
+
+  } catch (err) {
+    console.error('REGISTER ERROR:', err);
+
+    // Duplicate email handling
+    if (err.code === 'ER_DUP_ENTRY') {
+      return res.status(409).json({ error: "Email already registered" });
+    }
+
+    res.status(500).json({ error: "Registration failed" });
+  }
 });
+
 
 // --- PASSWORD RECOVERY SYSTEM ---
 
