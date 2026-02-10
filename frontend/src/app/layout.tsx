@@ -7,6 +7,7 @@ import NotificationHandler from "@/components/NotificationHandler";
 import SystemBriefing from "@/components/SystemBriefing";
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
+  console.log('ROOT LAYOUT RENDER');
   const pathname = usePathname();
   const isLoginPage = pathname === '/login';  // ← YOUR HOMEPAGE!
 
