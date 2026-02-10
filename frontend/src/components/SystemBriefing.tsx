@@ -1,43 +1,23 @@
 'use client';
+
 import { useEffect, useState } from 'react';
 
 export default function SystemBriefing() {
-  const [showBriefing, setShowBriefing] = useState(true);
-  const [isReady, setIsReady] = useState(false);
-
-  // Debug: Log EVERYTHING
-  console.log('🔥 Component renders, showBriefing=', showBriefing, 'isReady=', isReady);
+  const [showBriefing, setShowBriefing] = useState(false);
 
   useEffect(() => {
-    console.log('🚀 useEffect #1: Browser ready!');
-    setIsReady(true);
+    const seen = localStorage.getItem('briefingSeen');
+    if (!seen) {
+      setShowBriefing(true);
+    }
   }, []);
 
-  useEffect(() => {
-    if (!isReady) return;
-    console.log('📱 useEffect #2: Checking localStorage');
-    const seen = localStorage.getItem('briefingSeen');
-    console.log('👀 Found "briefingSeen" =', seen);
-    if (seen === 'true') {
-      setShowBriefing(false);
-      console.log('❌ Hiding modal (already seen)');
-    } else {
-      console.log('✅ Showing modal (first time)');
-    }
-  }, [isReady]);
-
   const closeBriefing = () => {
-    console.log('👋 Closing briefing');
     localStorage.setItem('briefingSeen', 'true');
     setShowBriefing(false);
   };
 
-  if (!isReady || !showBriefing) {
-    console.log('🙈 Not showing modal');
-    return null;
-  }
-
-  console.log('🎉 SHOWING MODAL!!!');
+  if (!showBriefing) return null;
 
   return (
     <>
