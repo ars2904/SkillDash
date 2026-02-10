@@ -2,30 +2,42 @@
 import { useEffect, useState } from 'react';
 
 export default function SystemBriefing() {
-  const [showBriefing, setShowBriefing] = useState(true);  // Start SHOWING
-  const [isReady, setIsReady] = useState(false);          // Wait for browser
+  const [showBriefing, setShowBriefing] = useState(true);
+  const [isReady, setIsReady] = useState(false);
 
-  // Step 1: Wait for browser to fully load
+  // Debug: Log EVERYTHING
+  console.log('🔥 Component renders, showBriefing=', showBriefing, 'isReady=', isReady);
+
   useEffect(() => {
+    console.log('🚀 useEffect #1: Browser ready!');
     setIsReady(true);
   }, []);
 
-  // Step 2: Check if they've seen it before
   useEffect(() => {
-    if (!isReady) return;  // Don't run until browser ready
+    if (!isReady) return;
+    console.log('📱 useEffect #2: Checking localStorage');
     const seen = localStorage.getItem('briefingSeen');
-    if (seen) {
-      setShowBriefing(false);  // Hide if seen before
+    console.log('👀 Found "briefingSeen" =', seen);
+    if (seen === 'true') {
+      setShowBriefing(false);
+      console.log('❌ Hiding modal (already seen)');
+    } else {
+      console.log('✅ Showing modal (first time)');
     }
   }, [isReady]);
 
   const closeBriefing = () => {
+    console.log('👋 Closing briefing');
     localStorage.setItem('briefingSeen', 'true');
     setShowBriefing(false);
   };
 
-  // Don't show until browser is ready
-  if (!isReady || !showBriefing) return null;
+  if (!isReady || !showBriefing) {
+    console.log('🙈 Not showing modal');
+    return null;
+  }
+
+  console.log('🎉 SHOWING MODAL!!!');
 
   return (
     <>
