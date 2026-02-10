@@ -4,7 +4,6 @@ import { useState } from 'react';
 import { useUserStore } from '@/store/useUserStore';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import SystemBriefing from '@/components/SystemBriefing';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -55,9 +54,6 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen bg-black flex items-center justify-center p-4 relative">
-      
-      {/* SYSTEM BRIEFING (separate component) */}
-      <SystemBriefing />
 
       {/* LOGIN CARD */}
       <div className="w-full max-w-md p-8 bg-[#0a0a0a] border border-gray-900 rounded-[2.5rem] shadow-2xl animate-in fade-in zoom-in duration-500">
