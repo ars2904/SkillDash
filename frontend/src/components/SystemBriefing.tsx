@@ -1,23 +1,31 @@
 'use client';
-
 import { useEffect, useState } from 'react';
 
 export default function SystemBriefing() {
-  const [showBriefing, setShowBriefing] = useState(false);
+  const [showBriefing, setShowBriefing] = useState(true);  // Start SHOWING
+  const [isReady, setIsReady] = useState(false);          // Wait for browser
 
+  // Step 1: Wait for browser to fully load
   useEffect(() => {
-    const seen = localStorage.getItem('briefingSeen');
-    if (!seen) {
-      setShowBriefing(true);
-    }
+    setIsReady(true);
   }, []);
+
+  // Step 2: Check if they've seen it before
+  useEffect(() => {
+    if (!isReady) return;  // Don't run until browser ready
+    const seen = localStorage.getItem('briefingSeen');
+    if (seen) {
+      setShowBriefing(false);  // Hide if seen before
+    }
+  }, [isReady]);
 
   const closeBriefing = () => {
     localStorage.setItem('briefingSeen', 'true');
     setShowBriefing(false);
   };
 
-  if (!showBriefing) return null;
+  // Don't show until browser is ready
+  if (!isReady || !showBriefing) return null;
 
   return (
     <>
