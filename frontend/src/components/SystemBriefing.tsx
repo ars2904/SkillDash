@@ -2,50 +2,51 @@
 
 import { useEffect, useState } from 'react';
 
-export default function SystemBriefing() {
-  const [ready, setReady] = useState(false);       // Wait for browser
-  const [showBriefing, setShowBriefing] = useState(false);
+const STORAGE_KEY = 'skilldash_system_briefing_v1';
 
-  // Mark that we are on the client
+export default function SystemBriefing() {
+  const [ready, setReady] = useState(false);  // wait until we're in the browser
+  const [show, setShow] = useState(false);    // controls visibility
+
+  // Step 1: mark that we're on the client (browser)
   useEffect(() => {
-    if (typeof window === 'undefined') return;
+    if (typeof window === 'undefined') return; // server/edge: do nothing
     setReady(true);
   }, []);
 
-  // Only touch localStorage on the client
+  // Step 2: once on client, read localStorage
   useEffect(() => {
     if (!ready) return;
-
     try {
-      const seen = window.localStorage.getItem('briefingSeen');
+      const seen = window.localStorage.getItem(STORAGE_KEY);
       if (!seen) {
-        setShowBriefing(true);
+        // first time on this browser → show modal
+        setShow(true);
       }
     } catch (err) {
-      console.error('Error reading localStorage briefingSeen', err);
+      console.error('Briefing read error', err);
     }
   }, [ready]);
 
   const closeBriefing = () => {
     try {
-      window.localStorage.setItem('briefingSeen', 'true');
+      window.localStorage.setItem(STORAGE_KEY, 'true');
     } catch (err) {
-      console.error('Error writing localStorage briefingSeen', err);
+      console.error('Briefing write error', err);
     }
-    setShowBriefing(false);
+    setShow(false);
   };
 
-  // Until we know we're on the client, or if not showing → render nothing
-  if (!ready || !showBriefing) return null;
+  if (!ready || !show) return null;
 
   return (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/90 backdrop-blur-xl p-4 transition-opacity duration-500">
       <div className="w-full max-w-2xl bg-[#0a0a0a] border border-white/10 rounded-[2.5rem] p-8 md:p-12 shadow-[0_0_60px_-15px_rgba(249,115,22,0.4)] relative overflow-hidden transition-all duration-500 ease-out">
-
         {/* Top Glow Line */}
         <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-orange-500 to-transparent opacity-50" />
 
         <div className="relative z-10">
+          {/* your existing content unchanged */}
           <div className="text-center mb-10">
             <p className="text-[10px] tracking-[0.5em] text-orange-500 font-bold uppercase mb-2">
               Protocol Initialized
@@ -68,7 +69,6 @@ export default function SystemBriefing() {
           </div>
 
           <div className="grid md:grid-cols-2 gap-4 mb-10">
-            {/* Clients */}
             <div className="group p-6 bg-[#111] border border-white/5 rounded-3xl hover:border-orange-500/40 transition-all">
               <div className="flex gap-1.5 mb-4">
                 <div className="w-2.5 h-2.5 rounded-full bg-orange-500 shadow-[0_0_10px_#f97316]" />
@@ -81,7 +81,6 @@ export default function SystemBriefing() {
               </p>
             </div>
 
-            {/* Experts */}
             <div className="group p-6 bg-[#111] border border-white/5 rounded-3xl hover:border-cyan-500/40 transition-all">
               <div className="flex gap-1.5 mb-4">
                 <div className="w-2.5 h-2.5 rounded-full bg-cyan-400 shadow-[0_0_10px_#22d3ee]" />
