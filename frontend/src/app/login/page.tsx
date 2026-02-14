@@ -6,11 +6,11 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import SystemBriefing from '@/components/SystemBriefing';
 
-
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showWakeMessage, setShowWakeMessage] = useState(false);
 
   const { setUser, setRole } = useUserStore();
   const router = useRouter();
@@ -18,6 +18,12 @@ export default function LoginPage() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setShowWakeMessage(false);
+
+    // Show cold-start message if request takes longer than 3s
+    const timer = setTimeout(() => {
+      setShowWakeMessage(true);
+    }, 3000);
 
     try {
       const res = await fetch(
@@ -50,7 +56,9 @@ export default function LoginPage() {
     } catch {
       alert('Server connection failed');
     } finally {
+      clearTimeout(timer);
       setLoading(false);
+      setShowWakeMessage(false);
     }
   };
 
@@ -117,6 +125,14 @@ export default function LoginPage() {
           >
             {loading ? 'Decrypting...' : 'Establish Session'}
           </button>
+
+          {/* Cold Start Message */}
+          {showWakeMessage && (
+            <p className="text-[10px] text-gray-500 text-center mt-3 uppercase tracking-widest">
+              Server may be waking up after inactivity.  
+              This can take up to 60 seconds on first request.
+            </p>
+          )}
         </form>
 
         <div className="mt-8 pt-6 border-t border-gray-900 text-center">
