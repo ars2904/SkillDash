@@ -10,6 +10,7 @@ export default function RegisterPage() {
   const [password, setPassword] = useState('');
   const [role, setRole] = useState<'client' | 'expert'>('expert');
   const [loading, setLoading] = useState(false);
+  const [showWakeMessage, setShowWakeMessage] = useState(false);
   const [step, /*setStep*/] = useState<'info' /*| 'verify'*/>('info'); // Step control
   const router = useRouter();
 
@@ -17,6 +18,12 @@ export default function RegisterPage() {
   const handleInitiateRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setShowWakeMessage(false);
+
+    // Show cold-start message if request takes longer than 3s
+    const timer = setTimeout(() => {
+      setShowWakeMessage(true);
+    }, 3000);
 
     // We comment out the actual fetch to the OTP API
     /* try {
@@ -35,17 +42,19 @@ export default function RegisterPage() {
     } catch (err) {
       alert("Network transmission failed");
     } finally {
+      clearTimeout(timer);
       setLoading(false);
+      setShowWakeMessage(false);
     }
     */
 
     // INSTEAD: Just call the final registration immediately
     await completeRegistration();
+    clearTimeout(timer);
   };
 
   // Step 2: Final Registration 
   const completeRegistration = async () => {
-    setLoading(true);
     try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/register`, {
         method: 'POST',
@@ -74,6 +83,7 @@ export default function RegisterPage() {
       alert("Registration error: " + (err instanceof Error ? err.message : "Unknown error"));
     } finally {
       setLoading(false);
+      setShowWakeMessage(false);
     }
   };
 
@@ -97,14 +107,16 @@ export default function RegisterPage() {
                 <button
                   type="button"
                   onClick={() => setRole('expert')}
-                  className={`flex-1 py-3 px-2 rounded-xl text-[10px] font-black transition-all whitespace-nowrap ${role === 'expert' ? 'bg-blue-600 text-white shadow-lg' : 'text-gray-500 hover:text-gray-300'}`}
+                  disabled={loading}
+                  className={`flex-1 py-3 px-2 rounded-xl text-[10px] font-black transition-all whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed ${role === 'expert' ? 'bg-blue-600 text-white shadow-lg' : 'text-gray-500 hover:text-gray-300'}`}
                 >
                   EXPERT (Earn EXP)
                 </button>
                 <button
                   type="button"
                   onClick={() => setRole('client')}
-                  className={`flex-1 py-3 px-2 rounded-xl text-[10px] font-black transition-all whitespace-nowrap ${role === 'client' ? 'bg-orange-500 text-white shadow-lg' : 'text-gray-500 hover:text-gray-300'}`}
+                  disabled={loading}
+                  className={`flex-1 py-3 px-2 rounded-xl text-[10px] font-black transition-all whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed ${role === 'client' ? 'bg-orange-500 text-white shadow-lg' : 'text-gray-500 hover:text-gray-300'}`}
                 >
                   CLIENT (Post Tasks)
                 </button>
@@ -114,7 +126,8 @@ export default function RegisterPage() {
                 <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest ml-1 block mb-1">Operator Name</label>
                 <input 
                   type="text" required
-                  className="w-full p-4 bg-black border border-gray-800 rounded-2xl text-white focus:border-blue-500 outline-none transition-all text-sm"
+                  disabled={loading}
+                  className="w-full p-4 bg-black border border-gray-800 rounded-2xl text-white focus:border-blue-500 outline-none transition-all text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                   placeholder="Username"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
@@ -125,7 +138,8 @@ export default function RegisterPage() {
                 <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest ml-1 block mb-1">Network Email</label>
                 <input 
                   type="email" required
-                  className="w-full p-4 bg-black border border-gray-800 rounded-2xl text-white focus:border-blue-500 outline-none transition-all text-sm"
+                  disabled={loading}
+                  className="w-full p-4 bg-black border border-gray-800 rounded-2xl text-white focus:border-blue-500 outline-none transition-all text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                   placeholder="email@network.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
@@ -136,7 +150,8 @@ export default function RegisterPage() {
                 <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest ml-1 block mb-1">Encryption Key</label>
                 <input 
                   type="password" required
-                  className="w-full p-4 bg-black border border-gray-800 rounded-2xl text-white focus:border-blue-500 outline-none transition-all text-sm"
+                  disabled={loading}
+                  className="w-full p-4 bg-black border border-gray-800 rounded-2xl text-white focus:border-blue-500 outline-none transition-all text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
@@ -146,10 +161,18 @@ export default function RegisterPage() {
               <button 
                 type="submit"
                 disabled={loading}
-                className={`w-full py-4 font-black rounded-2xl transition-all active:scale-95 disabled:opacity-50 mt-4 tracking-tighter text-sm uppercase italic ${role === 'expert' ? 'bg-blue-600 hover:bg-blue-500' : 'bg-orange-500 hover:bg-orange-400'} text-white`}
+                className={`w-full py-4 font-black rounded-2xl transition-all active:scale-95 disabled:opacity-50 mt-4 tracking-tighter text-sm uppercase italic disabled:cursor-not-allowed ${role === 'expert' ? 'bg-blue-600 hover:bg-blue-500' : 'bg-orange-500 hover:bg-orange-400'} text-white`}
               >
                 {loading ? 'Initializing...' : 'Initialize Account'}
               </button>
+
+              {/* Cold Start Message */}
+              {showWakeMessage && (
+                <p className="text-[10px] text-gray-500 text-center mt-3 uppercase tracking-widest">
+                  Server may be waking up after inactivity.  
+                  This can take up to 60 seconds on first request.
+                </p>
+              )}
             </form>
           </div>
         )}
