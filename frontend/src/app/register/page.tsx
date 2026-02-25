@@ -12,7 +12,6 @@ export default function RegisterPage() {
   const [loading, setLoading] = useState(false);
   const [showWakeMessage, setShowWakeMessage] = useState(false);
   const [step, /*setStep*/] = useState<'info' /*| 'verify'*/>('info'); // Step control
-
   const router = useRouter();
 
   // Step 1: Trigger the OTP email
@@ -20,8 +19,8 @@ export default function RegisterPage() {
     e.preventDefault();
     setLoading(true);
 
-    //  comment out the actual fetch to the OTP API
-    /*  {
+    // We comment out the actual fetch to the OTP API
+    /* try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/send-otp`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -41,19 +40,13 @@ export default function RegisterPage() {
     }
     */
 
-    // Just call the final registration immediately
+    // INSTEAD: Just call the final registration immediately
     completeRegistration();
   };
 
   // Step 2: Final Registration 
   const completeRegistration = async () => {
     setLoading(true);
-    setShowWakeMessage(false);
-
-    const timer = setTimeout(() => {
-      setShowWakeMessage(true);
-    }, 3000);
-
     try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/register`, {
         method: 'POST',
@@ -79,9 +72,7 @@ export default function RegisterPage() {
     } catch (err) {
       alert("Registration error");
     } finally {
-      clearTimeout(timer);
       setLoading(false);
-      setShowWakeMessage(false);
     }
   };
 
@@ -94,79 +85,58 @@ export default function RegisterPage() {
           <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="text-center mb-8">
               <div className="inline-block px-3 py-1 bg-blue-500/10 border border-blue-500/20 rounded-full mb-4">
-                 <span className="text-[8px] font-black uppercase tracking-[0.3em] text-blue-500">
-                   New Node Deployment
-                 </span>
+                 <span className="text-[8px] font-black uppercase tracking-[0.3em] text-blue-500">New Node Deployment</span>
               </div>
-              <h1 className="text-4xl font-black text-white italic tracking-tighter uppercase leading-none">
-                Initialize
-              </h1>
-              <p className="text-gray-600 text-[10px] font-bold uppercase tracking-widest mt-2">
-                Create your SkillDash credentials
-              </p>
+              <h1 className="text-4xl font-black text-white italic tracking-tighter uppercase leading-none">Initialize</h1>
+              <p className="text-gray-600 text-[10px] font-bold uppercase tracking-widest mt-2">Create your SkillDash credentials</p>
             </div>
 
             <form onSubmit={handleInitiateRegister} className="space-y-4">
-              
               <div className="flex gap-2 p-1 bg-black border border-gray-800 rounded-2xl mb-4">
                 <button
                   type="button"
                   onClick={() => setRole('expert')}
-                  className={`flex-1 py-3 rounded-xl text-[10px] font-black transition-all ${
-                    role === 'expert'
-                      ? 'bg-blue-600 text-white shadow-lg'
-                      : 'text-gray-500 hover:text-gray-300'
-                  }`}
+                  className={`flex-1 py-3 rounded-xl text-[10px] font-black transition-all ${role === 'expert' ? 'bg-blue-600 text-white shadow-lg' : 'text-gray-500 hover:text-gray-300'}`}
                 >
                   EXPERT (Earn EXP)
                 </button>
                 <button
                   type="button"
                   onClick={() => setRole('client')}
-                  className={`flex-1 py-3 rounded-xl text-[10px] font-black transition-all ${
-                    role === 'client'
-                      ? 'bg-orange-500 text-white shadow-lg'
-                      : 'text-gray-500 hover:text-gray-300'
-                  }`}
+                  className={`flex-1 py-3 rounded-xl text-[10px] font-black transition-all ${role === 'client' ? 'bg-orange-500 text-white shadow-lg' : 'text-gray-500 hover:text-gray-300'}`}
                 >
                   CLIENT (Post Tasks)
                 </button>
               </div>
 
               <div>
-                <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest ml-1 block mb-1">
-                  Operator Name
-                </label>
+                <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest ml-1 block mb-1">Operator Name</label>
                 <input 
-                  type="text"
-                  required
+                  type="text" required
                   className="w-full p-4 bg-black border border-gray-800 rounded-2xl text-white focus:border-blue-500 outline-none transition-all text-sm"
+                  placeholder="Username"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                 />
               </div>
 
               <div>
-                <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest ml-1 block mb-1">
-                  Network Email
-                </label>
+                <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest ml-1 block mb-1">Network Email</label>
                 <input 
-                  type="email"
-                  required
+                  type="email" required
                   className="w-full p-4 bg-black border border-gray-800 rounded-2xl text-white focus:border-blue-500 outline-none transition-all text-sm"
+                  placeholder="email@network.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                 />
               </div>
 
               <div>
-                <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest ml-1 block mb-1">
-                  Encryption Key
-                </label>
+                <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest ml-1 block mb-1">Encryption Key</label>
                 <input 
-                  type="password"
-                  required
+                  type="password" required
                   className="w-full p-4 bg-black border border-gray-800 rounded-2xl text-white focus:border-blue-500 outline-none transition-all text-sm"
+                  placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                 />
@@ -175,23 +145,10 @@ export default function RegisterPage() {
               <button 
                 type="submit"
                 disabled={loading}
-                className={`w-full py-4 font-black rounded-2xl transition-all active:scale-95 disabled:opacity-50 mt-4 tracking-tighter text-sm uppercase italic ${
-                  role === 'expert'
-                    ? 'bg-blue-600 hover:bg-blue-500'
-                    : 'bg-orange-500 hover:bg-orange-400'
-                } text-white`}
+                className={`w-full py-4 font-black rounded-2xl transition-all active:scale-95 disabled:opacity-50 mt-4 tracking-tighter text-sm uppercase italic ${role === 'expert' ? 'bg-blue-600 hover:bg-blue-500' : 'bg-orange-500 hover:bg-orange-400'} text-white`}
               >
                 {loading ? 'Initializing...' : 'Initialize Account'}
               </button>
-
-              {/* Cold Start Message */}
-              {showWakeMessage && (
-                <p className="text-[10px] text-gray-500 text-center mt-3 uppercase tracking-widest">
-                  Server may be waking up after inactivity.  
-                  This can take up to 60 seconds on first request.
-                </p>
-              )}
-
             </form>
           </div>
         )}
@@ -210,15 +167,13 @@ export default function RegisterPage() {
               ← Edit Account Details
             </button>
           </div>
-        )} */}
+        )} 
+        */}
 
         <div className="mt-8 pt-6 border-t border-gray-900 text-center">
           <p className="text-gray-600 text-[9px] font-black uppercase tracking-widest">
             Already registered?{' '}
-            <Link
-              href="/login"
-              className="text-white hover:text-orange-500 transition-colors underline decoration-gray-800 underline-offset-4"
-            >
+            <Link href="/login" className="text-white hover:text-orange-500 transition-colors underline decoration-gray-800 underline-offset-4">
               Return to Login
             </Link>
           </p>
@@ -236,7 +191,8 @@ export default function RegisterPage() {
             className="text-white underline decoration-gray-700 underline-offset-4 hover:text-orange-500 transition-colors"
           >
             returning to login
-          </Link>.
+          </Link>
+          .
         </p>
       </div>
     </div>
