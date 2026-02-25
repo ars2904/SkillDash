@@ -10,7 +10,6 @@ export default function RegisterPage() {
   const [password, setPassword] = useState('');
   const [role, setRole] = useState<'client' | 'expert'>('expert');
   const [loading, setLoading] = useState(false);
-  const [showWakeMessage, setShowWakeMessage] = useState(false);
   const [step, /*setStep*/] = useState<'info' /*| 'verify'*/>('info'); // Step control
   const router = useRouter();
 
@@ -41,7 +40,7 @@ export default function RegisterPage() {
     */
 
     // INSTEAD: Just call the final registration immediately
-    completeRegistration();
+    await completeRegistration();
   };
 
   // Step 2: Final Registration 
@@ -65,12 +64,14 @@ export default function RegisterPage() {
       if (res.ok) {
         alert("Node Initialized Successfully. Proceed to Login.");
         router.push('/login');
+        return;
       } else {
         const data = await res.json();
         alert(data.error || "Final initialization failed");
       }
     } catch (err) {
-      alert("Registration error");
+      console.error("Registration error:", err);
+      alert("Registration error: " + (err instanceof Error ? err.message : "Unknown error"));
     } finally {
       setLoading(false);
     }
@@ -96,14 +97,14 @@ export default function RegisterPage() {
                 <button
                   type="button"
                   onClick={() => setRole('expert')}
-                  className={`flex-1 py-3 rounded-xl text-[10px] font-black transition-all ${role === 'expert' ? 'bg-blue-600 text-white shadow-lg' : 'text-gray-500 hover:text-gray-300'}`}
+                  className={`flex-1 py-3 px-2 rounded-xl text-[10px] font-black transition-all whitespace-nowrap ${role === 'expert' ? 'bg-blue-600 text-white shadow-lg' : 'text-gray-500 hover:text-gray-300'}`}
                 >
                   EXPERT (Earn EXP)
                 </button>
                 <button
                   type="button"
                   onClick={() => setRole('client')}
-                  className={`flex-1 py-3 rounded-xl text-[10px] font-black transition-all ${role === 'client' ? 'bg-orange-500 text-white shadow-lg' : 'text-gray-500 hover:text-gray-300'}`}
+                  className={`flex-1 py-3 px-2 rounded-xl text-[10px] font-black transition-all whitespace-nowrap ${role === 'client' ? 'bg-orange-500 text-white shadow-lg' : 'text-gray-500 hover:text-gray-300'}`}
                 >
                   CLIENT (Post Tasks)
                 </button>
