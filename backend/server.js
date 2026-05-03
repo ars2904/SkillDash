@@ -31,15 +31,17 @@ app.use('/api/admin', adminRoutes);
 // ============================================================
 async function seedAdmin() {
   try {
-    const [existing] = await pool.query("SELECT id FROM users WHERE email = 'admin@skilldash.com'");
+    const adminEmail = process.env.ADMIN_EMAIL || 'admin@skilldash.com';
+    const adminPass = process.env.ADMIN_PASSWORD || 'admin123';
+    const [existing] = await pool.query("SELECT id FROM users WHERE email = ?", [adminEmail]);
     if (existing.length === 0) {
-      const hash = await bcrypt.hash('admin123', 10);
+      const hash = await bcrypt.hash(adminPass, 10);
       await pool.query(
         `INSERT INTO users (username, email, password_hash, role, user_rank, exp, current_level, is_admin, is_verified)
-         VALUES ('SuperAdmin', 'admin@skilldash.com', ?, 'expert', 'Legend', 0, 5, 1, 1)`,
-        [hash]
+         VALUES ('SuperAdmin', ?, ?, 'expert', 'Legend', 0, 5, 1, 1)`,
+        [adminEmail, hash]
       );
-      console.log('✅ Admin account seeded: admin@skilldash.com / admin123');
+      console.log(`✅ Admin account seeded: ${adminEmail}`);
     }
   } catch (err) {
     console.log('Admin seed skipped (table may not be migrated yet):', err.message);
