@@ -31,8 +31,14 @@ app.use('/api/admin', adminRoutes);
 // ============================================================
 async function seedAdmin() {
   try {
-    const adminEmail = process.env.ADMIN_EMAIL || 'admin@skilldash.com';
-    const adminPass = process.env.ADMIN_PASSWORD || 'admin123';
+    const adminEmail = process.env.ADMIN_EMAIL;
+    const adminPass = process.env.ADMIN_PASSWORD;
+
+    if (!adminEmail || !adminPass) {
+      console.log('Admin seed skipped: ADMIN_EMAIL or ADMIN_PASSWORD not set in environment.');
+      return;
+    }
+
     const [existing] = await pool.query("SELECT id FROM users WHERE email = ?", [adminEmail]);
     if (existing.length === 0) {
       const hash = await bcrypt.hash(adminPass, 10);
