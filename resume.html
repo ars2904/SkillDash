@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aryan - Resume</title>
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --text-main: #1f2937;
+            --text-muted: #4b5563;
+            --bg-color: #ffffff;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            color: var(--text-main);
+            background: var(--bg-color);
+            line-height: 1.35;
+            font-size: 10.5pt;
+        }
+
+        .container {
+            max-width: 8.5in;
+            margin: 0 auto;
+            padding: 0.2in 0.4in;
+            background: white;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 10px;
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 8px;
+        }
+
+        h1 {
+            font-size: 24pt;
+            color: var(--primary-color);
+            margin-bottom: 4px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .subtitle {
+            font-size: 12pt;
+            font-weight: 600;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+        }
+
+        .contact-info {
+            font-size: 10pt;
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .contact-info a {
+            color: var(--text-main);
+            text-decoration: none;
+        }
+
+        section {
+            margin-bottom: 10px;
+        }
+
+        h2 {
+            font-size: 12.5pt;
+            color: var(--primary-color);
+            text-transform: uppercase;
+            border-bottom: 1px solid #e5e7eb;
+            padding-bottom: 2px;
+            margin-bottom: 6px;
+        }
+
+        p {
+            margin-bottom: 6px;
+            text-align: justify;
+        }
+
+        ul {
+            padding-left: 20px;
+            margin-bottom: 6px;
+        }
+
+        li {
+            margin-bottom: 3px;
+        }
+
+        .project {
+            margin-bottom: 12px;
+        }
+
+        .project-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin-bottom: 4px;
+        }
+
+        .project-title {
+            font-weight: 700;
+            font-size: 11.5pt;
+        }
+
+        .project-tech {
+            font-size: 10pt;
+            color: var(--text-muted);
+            font-style: italic;
+        }
+
+        .skills-grid {
+            display: grid;
+            grid-template-columns: 100%;
+            gap: 4px;
+        }
+
+        .skill-item strong {
+            display: inline-block;
+            width: 80px;
+        }
+
+        .edu-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+        }
+
+        .edu-degree {
+            font-weight: 700;
+        }
+
+        @media print {
+            body {
+                background: white;
+            }
+
+            .container {
+                padding: 0;
+                margin: 0;
+                width: 100%;
+            }
+
+            @page {
+                size: A4;
+                margin: 0.25in 0.4in;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <h1>Aryan Shrivastav</h1>
+            <div class="subtitle">Full Stack Developer & Software Engineer</div>
+            <div class="contact-info">
+                <span><a href="#">https://www.linkedin.com/in/aryan-shrivastav8495a0314/</a></span> |
+                <span><a href="#">https://github.com/ars2904/</a></span> |
+                <span><a href="mailto:email@example.com">aryanshrivastav4370@gmail.com</a></span> |
+                <span><a href="#">https://aryn247.github.io/Self-Portfolio/</a></span> |
+                <span>+918081916992</span>
+            </div>
+        </header>
+
+        <section>
+            <h2>Professional Summary</h2>
+            <p>Results-driven Full Stack Developer with a strong foundation in modern web technologies and a passion for
+                building scalable, enterprise-grade applications. Proven ability to design and implement complex
+                software solutions, from robust backend architectures to premium, highly interactive frontend user
+                interfaces. Adept at leveraging modern frameworks to deliver exceptional user experiences and robust
+                data processing tools.</p>
+        </section>
+
+        <section>
+            <h2>Technical Skills</h2>
+            <div class="skills-grid">
+                <div class="skill-item"><strong>Languages:</strong> JavaScript (ES6+), TypeScript, Python, SQL, HTML5,
+                    CSS3</div>
+                <div class="skill-item"><strong>Frontend:</strong> React.js, Next.js, Vite, Tailwind CSS, Redux, Framer
+                    Motion, Monaco Editor API</div>
+                <div class="skill-item"><strong>Backend:</strong> Node.js, Express.js, FastAPI, RESTful APIs</div>
+                <div class="skill-item"><strong>Databases:</strong> PostgreSQL, MongoDB, MySQL</div>
+                <div class="skill-item"><strong>Tools:</strong> Git, GitHub, Docker, Postman, Webpack, Babel</div>
+            </div>
+        </section>
+
+        <section>
+            <h2>Featured Projects</h2>
+
+            <div class="project">
+                <div class="project-header">
+                    <span class="project-title">Multi-Language Code Analyzer Pro <a
+                            href="https://github.com/aryn247/multi-language-code-analyzer" target="_blank"
+                            style="font-size: 10pt; font-weight: normal; color: var(--primary-color); text-decoration: none; margin-left: 6px;">[GitHub]</a></span>
+                    <span class="project-tech">FastAPI, React (Vite), TypeScript, Monaco Editor</span>
+                </div>
+                <ul>
+                    <li>Engineered an enterprise-grade static code analysis tool supporting 9+ programming languages
+                        (Python, Java, JS, C++, Go, Rust, PHP, Ruby, C#).</li>
+                    <li>Integrated <strong>Monaco Editor</strong> to provide a high-end, IDE-like in-browser coding
+                        experience with real-time feedback.</li>
+                    <li>Implemented robust <strong>AST (Abstract Syntax Tree) parsing</strong> on the backend to
+                        evaluate code structural integrity and detect vulnerabilities.</li>
+                    <li>Developed interactive metrics visualizations and dynamic dependency graph generation to help
+                        developers understand code complexity at a glance.</li>
+
+                </ul>
+            </div>
+
+            <div class="project">
+                <div class="project-header">
+                    <span class="project-title">SkillDash Platform <a href="https://skillldashh.vercel.app"
+                            target="_blank"
+                            style="font-size: 10pt; font-weight: normal; color: var(--primary-color); text-decoration: none; margin-left: 6px;">
+                            [Live Link]</a></span>
+                    <span class="project-tech">React, Node.js, Express, MySQL, Next.js</span>
+                </div>
+                <ul>
+                    <li>Architected and developed a comprehensive platform connecting professionals with job
+                        opportunities and expert feeds.</li>
+                    <li>Built complex React frontend components including dynamic sidebars, multi-step job submission
+                        forms, and real-time expert activity feeds.</li>
+                    <li>Designed and implemented a secure <strong>Role-Based Access Control (RBAC)</strong> system,
+                        complete with Admin Dashboards for managing users.</li>
+                    <li>Developed a robust backend architecture featuring secure user authentication, profile management
+                        APIs, and seamless database migrations.</li>
+
+                </ul>
+            </div>
+        </section>
+
+        <section>
+            <h2>Education</h2>
+            <div class="edu-header">
+                <span class="edu-degree">Bachelor of Computer Applications</span>
+                <span>Expected 2026</span>
+            </div>
+            <div><strong>Chandrabhan Sharma College of Arts, Science, and Commerce</strong><br><span
+                    style="font-size: 10pt; color: var(--text-muted);">(Affiliated with Yashwantrao Chavan Maharashtra
+                    Open University, Nashik)</span></div>
+            <ul>
+                <li>Relevant Coursework: Cyber Security, AI Fluency: Framework & Foundations</li>
+            </ul>
+        </section>
+
+        <section>
+            <h2>Soft Skills</h2>
+            <div class="skills-grid">
+                <div class="skill-item">Problem Solving & Analytical Thinking • Agile/Scrum Methodologies • Effective
+                    Technical Communication • UI/UX Design Sensibilities</div>
+            </div>
+        </section>
+    </div>
+</body>
+
+</html>

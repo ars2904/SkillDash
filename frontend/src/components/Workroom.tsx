@@ -4,6 +4,7 @@ import { useUserStore } from '@/store/useUserStore';
 import ExpertProfile from './ExpertProfile';
 import { toast } from 'sonner';
 import { CheckCircle, Lock, Send, Star, X } from 'lucide-react';
+import { apiFetch } from '@/lib/api';
 
 export default function Workroom({ jobId }: { jobId: number }) {
   const { user, role } = useUserStore();
@@ -24,83 +25,74 @@ export default function Workroom({ jobId }: { jobId: number }) {
 
   const fetchData = async () => {
     if (!user) return;
-  try {
-    // 1. Fetch the messages
-    const msgRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/jobs/${jobId}/messages`);
-    const msgData = await msgRes.json();
+    try {
+      // 1. Fetch the messages
+      const msgData = await apiFetch(`/api/jobs/${jobId}/messages`);
 
-    // --- ADD THE TOAST LOGIC HERE ---
-    // If we have more messages than before, and it's not the initial page load
-    if (msgData.length > lastMessageCount && lastMessageCount !== 0) {
-      const latest = msgData[msgData.length - 1];
-      
-      // Only show toast if the message is from the other person
-      if (latest.sender_id !== user?.id) {
-        toast.info(`Message from ${latest.username}`, {
-          description: latest.content.length > 40 
-            ? latest.content.substring(0, 40) + "..." 
-            : latest.content,
-        });
+      // --- ADD THE TOAST LOGIC HERE ---
+      // If we have more messages than before, and it's not the initial page load
+      if (msgData.length > lastMessageCount && lastMessageCount !== 0) {
+        const latest = msgData[msgData.length - 1];
+        
+        // Only show toast if the message is from the other person
+        if (latest.sender_id !== user?.id) {
+          toast.info(`Message from ${latest.username}`, {
+            description: latest.content.length > 40 
+              ? latest.content.substring(0, 40) + "..." 
+              : latest.content,
+          });
+        }
       }
-    }
-    // --------------------------------
+      // --------------------------------
 
-    // 2. Update the message states
-    setMessages(msgData);
-    setLastMessageCount(msgData.length); // Update our counter for the next check
+      // 2. Update the message states
+      setMessages(msgData);
+      setLastMessageCount(msgData.length); // Update our counter for the next check
 
-    // 3. Fetch job status (your existing code)
-    const jobRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/jobs/${jobId}`); 
-    const jobData = await jobRes.json();
-    
-    const currentJob = Array.isArray(jobData) ? jobData[0] : jobData; 
-    
-    if (currentJob) {
-      setStatus(currentJob.status);
-      setExpertId(currentJob.expert_id);
+      // 3. Fetch job status (your existing code)
+      const jobData = await apiFetch(`/api/jobs/${jobId}`); 
+      
+      const currentJob = Array.isArray(jobData) ? jobData[0] : jobData; 
+      
+      if (currentJob) {
+        setStatus(currentJob.status);
+        setExpertId(currentJob.expert_id);
+      }
+      setLoading(false);
+    } catch (err) {
+      console.error("Sync error:", err);
     }
-    setLoading(false);
-  } catch (err) {
-    console.error("Sync error:", err);
-  }
-};
+  };
 
   const handleComplete = async () => {
     if (!reviewText.trim()) {
-      alert("Please provide a mission summary.");
+      toast.error("Please provide a mission summary.");
       return;
     }
 
     setIsSubmitting(true);
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/jobs/${jobId}/complete`, {
+      const data = await apiFetch(`/api/jobs/${jobId}/complete`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           review: reviewText,
           rating: rating
         }),
       });
 
-      const data = await res.json();
+      const { newLevel, newRank, nextMilestone, newExp } = data;
 
-      if (res.ok) {
-        // Destructure the data from your backend response
-        const { newLevel, newRank, nextMilestone, newExp } = data;
-
-        alert(
-          `MISSION SUCCESS!\n\n` +
-          `You are now Level ${newLevel} (${newRank}).\n` +
-          `Next Milestone: ${nextMilestone} total EXP needed.\n` +
-          `Current EXP: ${newExp}`
-        );
-        
-        window.location.reload(); 
-      } else {
-        alert(data.error || "Failed to finalize mission");
-      }
-    } catch (err) {
+      toast.success("MISSION SUCCESS!", {
+        description: `You are now Level ${newLevel} (${newRank}). Next Milestone: ${nextMilestone} total EXP needed. Current EXP: ${newExp}`
+      });
+      
+      // Update global user state instead of page reload
+      useUserStore.getState().updateStats(newExp, newLevel, newRank);
+      setStatus('completed');
+      setShowCompletionModal(false);
+    } catch (err: any) {
       console.error("Finalization error:", err);
+      toast.error(err.message || "Failed to finalize mission");
     } finally {
       setIsSubmitting(false);
     }
@@ -119,12 +111,15 @@ export default function Workroom({ jobId }: { jobId: number }) {
   const sendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!text.trim() || !user || status === 'completed') return;
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/messages`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ job_id: jobId, sender_id: user.id, content: text })
-    });
-    if (res.ok) { setText(''); fetchData(); }
+    try {
+      await apiFetch(`/api/messages`, {
+        method: 'POST',
+        body: JSON.stringify({ job_id: jobId, sender_id: user.id, content: text })
+      });
+      setText(''); fetchData();
+    } catch (err: any) {
+      toast.error("Failed to send message", { description: err.message });
+    }
   };
 
   if (loading) return (

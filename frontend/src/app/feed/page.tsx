@@ -2,6 +2,8 @@
 import { useEffect, useState } from 'react';
 import { useUserStore } from '@/store/useUserStore';
 import { Briefcase, DollarSign, Zap, Clock, ChevronRight } from 'lucide-react';
+import { apiFetch } from '@/lib/api';
+import { toast } from 'sonner';
 
 export default function ExpertFeed() {
   const [jobs, setJobs] = useState([]);
@@ -9,10 +11,13 @@ export default function ExpertFeed() {
   const [applyingId, setApplyingId] = useState<number | null>(null);
 
   const fetchJobs = async () => {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/jobs`);
-    const data = await res.json();
-    // Only show "open" jobs
-    setJobs(data.filter((j: any) => j.status === 'open'));
+    try {
+      const data = await apiFetch('/api/jobs');
+      // Only show "open" jobs
+      setJobs(data.filter((j: any) => j.status === 'open'));
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   useEffect(() => {
@@ -21,17 +26,19 @@ export default function ExpertFeed() {
 
   const handleApply = async (jobId: number) => {
     setApplyingId(jobId);
-    const res = await fetch('fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/applications`', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ job_id: jobId, expert_id: user?.id })
-    });
-    
-    if (res.ok) {
+    try {
+      await apiFetch('/api/applications', {
+        method: 'POST',
+        body: JSON.stringify({ job_id: jobId, expert_id: user?.id })
+      });
+      
       setTimeout(() => {
         setApplyingId(null);
-        alert("Application Sent!");
+        toast.success("Application Sent!");
       }, 600);
+    } catch (err: any) {
+      setApplyingId(null);
+      toast.error("Application Failed", { description: err.message });
     }
   };
 

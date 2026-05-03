@@ -1,12 +1,38 @@
 'use client';
 import { useUserStore } from '@/store/useUserStore';
 import { useRouter, usePathname } from 'next/navigation';
-import { User, Briefcase, Users, LogOut, Search, LayoutDashboard, MessageSquare, Zap } from 'lucide-react';
+import { User, Briefcase, Users, LogOut, Search, LayoutDashboard, MessageSquare, Zap, ShieldAlert, ArrowLeftRight } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { apiFetch } from '@/lib/api';
+import { toast } from 'sonner';
 
 export default function Sidebar() {
-  const { user, role, logout } = useUserStore();
+  const { user, role, logout, isAdmin, switchRole } = useUserStore();
   const router = useRouter();
   const pathname = usePathname();
+  const [mounted, setMounted] = useState(false);
+  const [isSwitching, setIsSwitching] = useState(false);
+
+  useEffect(() => setMounted(true), []);
+
+  const handleRoleSwitch = async () => {
+    if (!user) return;
+    const newRole = role === 'client' ? 'expert' : 'client';
+    setIsSwitching(true);
+    try {
+      await apiFetch(`/api/users/${user.id}/switch-role`, {
+        method: 'PUT',
+        body: JSON.stringify({ newRole })
+      });
+      switchRole(newRole);
+      toast.success(`Switched to ${newRole} view`);
+      router.push('/');
+    } catch (err: any) {
+      toast.error('Failed to switch role', { description: err.message });
+    } finally {
+      setIsSwitching(false);
+    }
+  };
 
   const clientLinks = [
     { name: 'Dashboard', icon: <LayoutDashboard size={20}/>, path: '/' },
@@ -29,16 +55,16 @@ export default function Sidebar() {
     router.push('/login');
   };
 
-  if (!user) return null;
+  if (!mounted || !user) return null;
 
   // --- PROGRESS LOGIC ---
   const currentLvl = user.current_level || 1;
   const currentExp = user.exp || 0;
-  const nextGoal = currentLvl * 100; // Progressive: 100, 200, 300...
+  const nextGoal = currentLvl * 100;
   const progressPercent = Math.min((currentExp / nextGoal) * 100, 100);
 
   return (
-    <aside className="w-64 h-screen bg-[#0a0a0a] border-r border-gray-800 flex flex-col fixed left-0 top-0">
+    <aside className="w-64 h-screen bg-[#0a0a0a] border-r border-gray-800 flex flex-col fixed left-0 top-0 z-40">
       <div className="p-6">
         <h1 className="text-2xl font-black italic tracking-tighter text-orange-500">
           {role === 'client' ? 'SKILLDASH' : 'EXPERT.PRO'}
@@ -48,7 +74,7 @@ export default function Sidebar() {
         </p>
       </div>
 
-      <nav className="flex-1 px-4 space-y-2">
+      <nav className="flex-1 px-4 space-y-2 overflow-y-auto">
         {menuItems.map((item) => (
           <button
             key={item.name}
@@ -63,6 +89,27 @@ export default function Sidebar() {
             {item.name}
           </button>
         ))}
+
+        {isAdmin() && (
+          <>
+            <div className="my-4 border-t border-gray-800" />
+            <button
+              onClick={() => router.push('/admin')}
+              className="w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-sm transition-all text-red-400 hover:bg-red-500/10 hover:text-red-300"
+            >
+              <ShieldAlert size={20} />
+              Admin Panel
+            </button>
+            <button
+              onClick={handleRoleSwitch}
+              disabled={isSwitching}
+              className="w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-[10px] uppercase tracking-widest transition-all text-blue-400 hover:bg-blue-500/10 hover:text-blue-300 mt-2 border border-blue-500/20"
+            >
+              <ArrowLeftRight size={16} />
+              {isSwitching ? 'Switching...' : `Switch to ${role === 'client' ? 'Expert' : 'Client'}`}
+            </button>
+          </>
+        )}
       </nav>
 
       {/* --- DYNAMIC EXP PROGRESS BAR (Expert Only) --- */}
@@ -89,7 +136,7 @@ export default function Sidebar() {
       <div className="p-4 border-t border-gray-800 space-y-4">
         <div className="flex items-center gap-3 px-2">
           <div className={`w-10 h-10 rounded-full flex items-center justify-center text-black font-black flex-shrink-0 ${role === 'client' ? 'bg-orange-500' : 'bg-blue-500'}`}>
-            {user.username[0].toUpperCase()}
+            {user.username?.[0]?.toUpperCase() || '?'}
           </div>
           <div className="overflow-hidden">
             <p className="text-white text-sm font-bold truncate">{user.username}</p>

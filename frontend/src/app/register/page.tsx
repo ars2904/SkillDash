@@ -1,8 +1,9 @@
 'use client';
 import { useState } from 'react';
+import { useUserStore } from '@/store/useUserStore';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-// import OTPInput from '@/components/OTPInput'; // STOP WORKING
+import { toast } from 'sonner';
 
 export default function RegisterPage() {
   const [username, setUsername] = useState('');
@@ -11,77 +12,53 @@ export default function RegisterPage() {
   const [role, setRole] = useState<'client' | 'expert'>('expert');
   const [loading, setLoading] = useState(false);
   const [showWakeMessage, setShowWakeMessage] = useState(false);
-  const [step, /*setStep*/] = useState<'info' /*| 'verify'*/>('info'); // Step control
+  const { setUser, setRole: setStoreRole, setToken } = useUserStore();
   const router = useRouter();
 
-  // Step 1: Trigger the OTP email
-  const handleInitiateRegister = async (e: React.FormEvent) => {
+  const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setShowWakeMessage(false);
 
-    // Show cold-start message if request takes longer than 3s
-    const timer = setTimeout(() => {
-      setShowWakeMessage(true);
-    }, 3000);
+    const timer = setTimeout(() => setShowWakeMessage(true), 3000);
 
-    // We comment out the actual fetch to the OTP API
-    /* try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/send-otp`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email }),
-      });
-
-      if (res.ok) {
-        setStep('verify');
-      } else {
-        const data = await res.json();
-        alert(data.error || "Verification failed to send");
-      }
-    } catch (err) {
-      alert("Network transmission failed");
-    } finally {
-      clearTimeout(timer);
-      setLoading(false);
-      setShowWakeMessage(false);
-    }
-    */
-
-    // INSTEAD: Just call the final registration immediately
-    await completeRegistration();
-    clearTimeout(timer);
-  };
-
-  // Step 2: Final Registration 
-  const completeRegistration = async () => {
     try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          username, 
-          email, 
-          password, 
-          role,
-          user_rank: role === 'expert' ? 'Novice' : 'Bronze Patron',
-          exp: 0,
-          current_level: 1
-        }),
+        body: JSON.stringify({ username, email, password, role }),
       });
 
+      const data = await res.json();
+
       if (res.ok) {
-        alert("Node Initialized Successfully. Proceed to Login.");
-        router.push('/login');
-        return;
+        // Store JWT token and auto-login
+        setToken(data.token);
+        setUser({
+          id: data.userId,
+          username,
+          email,
+          role,
+          user_rank: 'Novice',
+          exp: 0,
+          current_level: 1,
+          is_admin: 0,
+        });
+        setStoreRole(role);
+
+        toast.success('Account initialized!', {
+          description: 'Welcome to SkillDash, ' + username,
+        });
+
+        router.push('/');
       } else {
-        const data = await res.json();
-        alert(data.error || "Final initialization failed");
+        toast.error(data.error || 'Registration failed');
       }
     } catch (err) {
-      console.error("Registration error:", err);
-      alert("Registration error: " + (err instanceof Error ? err.message : "Unknown error"));
+      console.error('Registration error:', err);
+      toast.error('Server connection failed');
     } finally {
+      clearTimeout(timer);
       setLoading(false);
       setShowWakeMessage(false);
     }
@@ -90,109 +67,76 @@ export default function RegisterPage() {
   return (
     <div className="min-h-screen bg-black flex flex-col items-center justify-center p-4">
       <div className="w-full max-w-md p-8 bg-[#0a0a0a] border border-gray-900 rounded-[2.5rem] shadow-2xl">
-        
-        {/* VIEW 1: REGISTRATION FORM */}
-        {step === 'info' && (
-          <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <div className="text-center mb-8">
-              <div className="inline-block px-3 py-1 bg-blue-500/10 border border-blue-500/20 rounded-full mb-4">
-                 <span className="text-[8px] font-black uppercase tracking-[0.3em] text-blue-500">New Node Deployment</span>
-              </div>
-              <h1 className="text-4xl font-black text-white italic tracking-tighter uppercase leading-none">Initialize</h1>
-              <p className="text-gray-600 text-[10px] font-bold uppercase tracking-widest mt-2">Create your SkillDash credentials</p>
+        <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <div className="text-center mb-8">
+            <div className="inline-block px-3 py-1 bg-blue-500/10 border border-blue-500/20 rounded-full mb-4">
+               <span className="text-[8px] font-black uppercase tracking-[0.3em] text-blue-500">New Node Deployment</span>
+            </div>
+            <h1 className="text-4xl font-black text-white italic tracking-tighter uppercase leading-none">Initialize</h1>
+            <p className="text-gray-600 text-[10px] font-bold uppercase tracking-widest mt-2">Create your SkillDash credentials</p>
+          </div>
+
+          <form onSubmit={handleRegister} className="space-y-4">
+            <div className="flex gap-2 p-1 bg-black border border-gray-800 rounded-2xl mb-4">
+              <button
+                type="button"
+                onClick={() => setRole('expert')}
+                disabled={loading}
+                className={`flex-1 py-3 px-2 rounded-xl text-[10px] font-black transition-all whitespace-nowrap disabled:opacity-50 ${role === 'expert' ? 'bg-blue-600 text-white shadow-lg' : 'text-gray-500 hover:text-gray-300'}`}
+              >
+                EXPERT (Earn EXP)
+              </button>
+              <button
+                type="button"
+                onClick={() => setRole('client')}
+                disabled={loading}
+                className={`flex-1 py-3 px-2 rounded-xl text-[10px] font-black transition-all whitespace-nowrap disabled:opacity-50 ${role === 'client' ? 'bg-orange-500 text-white shadow-lg' : 'text-gray-500 hover:text-gray-300'}`}
+              >
+                CLIENT (Post Tasks)
+              </button>
             </div>
 
-            <form onSubmit={handleInitiateRegister} className="space-y-4">
-              <div className="flex gap-2 p-1 bg-black border border-gray-800 rounded-2xl mb-4">
-                <button
-                  type="button"
-                  onClick={() => setRole('expert')}
-                  disabled={loading}
-                  className={`flex-1 py-3 px-2 rounded-xl text-[10px] font-black transition-all whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed ${role === 'expert' ? 'bg-blue-600 text-white shadow-lg' : 'text-gray-500 hover:text-gray-300'}`}
-                >
-                  EXPERT (Earn EXP)
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setRole('client')}
-                  disabled={loading}
-                  className={`flex-1 py-3 px-2 rounded-xl text-[10px] font-black transition-all whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed ${role === 'client' ? 'bg-orange-500 text-white shadow-lg' : 'text-gray-500 hover:text-gray-300'}`}
-                >
-                  CLIENT (Post Tasks)
-                </button>
-              </div>
+            <div>
+              <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest ml-1 block mb-1">Operator Name</label>
+              <input
+                type="text" required disabled={loading}
+                className="w-full p-4 bg-black border border-gray-800 rounded-2xl text-white focus:border-blue-500 outline-none transition-all text-sm disabled:opacity-50"
+                placeholder="Username" value={username} onChange={(e) => setUsername(e.target.value)}
+              />
+            </div>
 
-              <div>
-                <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest ml-1 block mb-1">Operator Name</label>
-                <input 
-                  type="text" required
-                  disabled={loading}
-                  className="w-full p-4 bg-black border border-gray-800 rounded-2xl text-white focus:border-blue-500 outline-none transition-all text-sm disabled:opacity-50 disabled:cursor-not-allowed"
-                  placeholder="Username"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                />
-              </div>
+            <div>
+              <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest ml-1 block mb-1">Network Email</label>
+              <input
+                type="email" required disabled={loading}
+                className="w-full p-4 bg-black border border-gray-800 rounded-2xl text-white focus:border-blue-500 outline-none transition-all text-sm disabled:opacity-50"
+                placeholder="email@network.com" value={email} onChange={(e) => setEmail(e.target.value)}
+              />
+            </div>
 
-              <div>
-                <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest ml-1 block mb-1">Network Email</label>
-                <input 
-                  type="email" required
-                  disabled={loading}
-                  className="w-full p-4 bg-black border border-gray-800 rounded-2xl text-white focus:border-blue-500 outline-none transition-all text-sm disabled:opacity-50 disabled:cursor-not-allowed"
-                  placeholder="email@network.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                />
-              </div>
+            <div>
+              <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest ml-1 block mb-1">Encryption Key</label>
+              <input
+                type="password" required disabled={loading}
+                className="w-full p-4 bg-black border border-gray-800 rounded-2xl text-white focus:border-blue-500 outline-none transition-all text-sm disabled:opacity-50"
+                placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)}
+              />
+            </div>
 
-              <div>
-                <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest ml-1 block mb-1">Encryption Key</label>
-                <input 
-                  type="password" required
-                  disabled={loading}
-                  className="w-full p-4 bg-black border border-gray-800 rounded-2xl text-white focus:border-blue-500 outline-none transition-all text-sm disabled:opacity-50 disabled:cursor-not-allowed"
-                  placeholder="••••••••"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                />
-              </div>
-
-              <button 
-                type="submit"
-                disabled={loading}
-                className={`w-full py-4 font-black rounded-2xl transition-all active:scale-95 disabled:opacity-50 mt-4 tracking-tighter text-sm uppercase italic disabled:cursor-not-allowed ${role === 'expert' ? 'bg-blue-600 hover:bg-blue-500' : 'bg-orange-500 hover:bg-orange-400'} text-white`}
-              >
-                {loading ? 'Initializing...' : 'Initialize Account'}
-              </button>
-
-              {/* Cold Start Message */}
-              {showWakeMessage && (
-                <p className="text-[10px] text-gray-500 text-center mt-3 uppercase tracking-widest">
-                  Server may be waking up after inactivity.  
-                  This can take up to 60 seconds on first request.
-                </p>
-              )}
-            </form>
-          </div>
-        )}
-
-        {/* VIEW 2: OTP INPUT COMPONENT (STOP WORKING) */}
-        {/* {step === 'verify' && (
-          <div className="animate-in fade-in zoom-in-95 duration-500">
-            <OTPInput 
-              email={email} 
-              onVerified={completeRegistration} 
-            />
-            <button 
-              onClick={() => setStep('info')} 
-              className="mt-4 text-[9px] font-black text-gray-600 uppercase tracking-widest hover:text-white w-full transition-colors"
+            <button
+              type="submit" disabled={loading}
+              className={`w-full py-4 font-black rounded-2xl transition-all active:scale-95 disabled:opacity-50 mt-4 tracking-tighter text-sm uppercase italic ${role === 'expert' ? 'bg-blue-600 hover:bg-blue-500' : 'bg-orange-500 hover:bg-orange-400'} text-white`}
             >
-              ← Edit Account Details
+              {loading ? 'Initializing...' : 'Initialize Account'}
             </button>
-          </div>
-        )} 
-        */}
+
+            {showWakeMessage && (
+              <p className="text-[10px] text-gray-500 text-center mt-3 uppercase tracking-widest">
+                Server may be waking up. This can take up to 60 seconds.
+              </p>
+            )}
+          </form>
+        </div>
 
         <div className="mt-8 pt-6 border-t border-gray-900 text-center">
           <p className="text-gray-600 text-[9px] font-black uppercase tracking-widest">
@@ -202,22 +146,6 @@ export default function RegisterPage() {
             </Link>
           </p>
         </div>
-      </div>
-
-      {/* OTP UNAVAILABLE NOTICE */}
-      <div className="mt-6 text-center max-w-md mx-auto px-4">
-        <p className="text-[9px] font-black uppercase tracking-widest text-gray-500 leading-relaxed">
-          Due to unforeseen circumstances, OTP verification is currently unavailable.
-          <br />
-          Please proceed by{' '}
-          <Link
-            href="/login"
-            className="text-white underline decoration-gray-700 underline-offset-4 hover:text-orange-500 transition-colors"
-          >
-            returning to login
-          </Link>
-          .
-        </p>
       </div>
     </div>
   );

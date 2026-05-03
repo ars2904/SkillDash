@@ -5,6 +5,7 @@ import { useUserStore } from '@/store/useUserStore';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import SystemBriefing from '@/components/SystemBriefing';
+import { toast } from 'sonner';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -12,7 +13,7 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [showWakeMessage, setShowWakeMessage] = useState(false);
 
-  const { setUser, setRole } = useUserStore();
+  const { setUser, setRole, setToken } = useUserStore();
   const router = useRouter();
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -20,10 +21,7 @@ export default function LoginPage() {
     setLoading(true);
     setShowWakeMessage(false);
 
-    // Show cold-start message if request takes longer than 3s
-    const timer = setTimeout(() => {
-      setShowWakeMessage(true);
-    }, 3000);
+    const timer = setTimeout(() => setShowWakeMessage(true), 3000);
 
     try {
       const res = await fetch(
@@ -38,6 +36,9 @@ export default function LoginPage() {
       const data = await res.json();
 
       if (res.ok) {
+        // Store JWT token
+        setToken(data.token);
+
         setUser({
           id: data.id,
           username: data.username,
@@ -46,15 +47,28 @@ export default function LoginPage() {
           user_rank: data.user_rank || 'Novice',
           exp: data.exp || 0,
           current_level: data.current_level || 1,
+          is_admin: data.is_admin || 0,
+          bio: data.bio,
+          location: data.location,
         });
 
         setRole(data.role);
-        router.push('/');
+
+        toast.success('Session established', {
+          description: `Welcome back, ${data.username}`,
+        });
+
+        // Redirect: admin goes to /admin, others go to /
+        if (data.is_admin === 1) {
+          router.push('/admin');
+        } else {
+          router.push('/');
+        }
       } else {
-        alert(data.error || 'Login failed');
+        toast.error(data.error || 'Login failed');
       }
     } catch {
-      alert('Server connection failed');
+      toast.error('Server connection failed');
     } finally {
       clearTimeout(timer);
       setLoading(false);
@@ -66,7 +80,6 @@ export default function LoginPage() {
     <div className="min-h-screen bg-black flex items-center justify-center p-4 relative">
       <SystemBriefing />
 
-      {/* LOGIN CARD */}
       <div className="w-full max-w-md p-8 bg-[#0a0a0a] border border-gray-900 rounded-[2.5rem] shadow-2xl animate-in fade-in zoom-in duration-500">
         <div className="text-center mb-10">
           <div className="inline-block px-3 py-1 bg-orange-500/10 border border-orange-500/20 rounded-full mb-4">
@@ -126,10 +139,9 @@ export default function LoginPage() {
             {loading ? 'Decrypting...' : 'Establish Session'}
           </button>
 
-          {/* Cold Start Message */}
           {showWakeMessage && (
             <p className="text-[10px] text-gray-500 text-center mt-3 uppercase tracking-widest">
-              Server may be waking up after inactivity.  
+              Server may be waking up after inactivity.
               This can take up to 60 seconds on first request.
             </p>
           )}

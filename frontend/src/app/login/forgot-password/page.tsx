@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import OTPInput from '@/components/OTPInput';
+import { toast } from 'sonner';
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState('');
@@ -22,7 +23,9 @@ export default function ForgotPasswordPage() {
         body: JSON.stringify({ email }),
       });
       if (res.ok) setStep('verify');
-      else alert("Email not found in network records.");
+      else toast.error("Email not found in network records.");
+    } catch (err) {
+      toast.error("Network Error", { description: "Failed to connect to authentication server." });
     } finally {
       setLoading(false);
     }
